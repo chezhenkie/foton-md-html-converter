@@ -9,12 +9,12 @@ pub fn collect_source_files(directory: &Path) -> Vec<PathBuf> {
     if let Ok(entries) = fs::read_dir(directory) {
         for entry in entries.flatten() {
             let path = entry.path();
-            if path.is_file() {
-                if let Some(ext) = path.extension() {
-                    let ext_str = format!(".{}", ext.to_string_lossy());
-                    if SCAN_EXTENSIONS.contains(&ext_str.as_str()) {
-                        files.push(path);
-                    }
+            if path.is_file()
+                && let Some(ext) = path.extension()
+            {
+                let ext_str = format!(".{}", ext.to_string_lossy());
+                if SCAN_EXTENSIONS.contains(&ext_str.as_str()) {
+                    files.push(path);
                 }
             }
         }

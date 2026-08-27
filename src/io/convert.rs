@@ -26,10 +26,10 @@ pub fn convert_file(md_file: &Path, kicker: Option<&str>) -> Result<(), String> 
             .unwrap_or("Untitled")
     });
 
-    let lede = "";
+    let lede = crate::parser::markdown::extract_lede(&md).unwrap_or_default();
 
     let body_html = crate::parser::markdown::md_to_html(&md);
-    let page = crate::html::builder::build_page(title, lede, &body_html, kicker);
+    let page = crate::html::builder::build_page(title, &lede, &body_html, kicker);
 
     let out_file = md_file.with_extension("html");
     fs::write(&out_file, page)

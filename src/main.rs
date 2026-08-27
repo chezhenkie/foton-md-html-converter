@@ -11,7 +11,7 @@ use std::process;
 struct Args {
     #[arg(
         long,
-        help = "Path to a single .md file OR a directory to convert. A directory (trailing slash optional) converts every .md inside it. Default: convert every .md in the current working directory."
+        help = "Path to a single .md/.txt file OR a directory to convert. A directory (trailing slash optional) converts every .md/.txt inside it. Default: convert every .md/.txt in the current working directory."
     )]
     target: Option<PathBuf>,
 
@@ -27,7 +27,7 @@ fn main() {
     match args.target {
         Some(target) => {
             let target_str = target.to_string_lossy();
-            let trimmed = target_str.trim_end_matches(|c| c == '/' || c == '\\');
+            let trimmed = target_str.trim_end_matches(['/', '\\']);
             let target = PathBuf::from(trimmed);
 
             if target.is_dir() {

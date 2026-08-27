@@ -78,7 +78,7 @@ table tr:hover{background:var(--line)}
 code{background:var(--code-bg);padding:0.15em 0.4em;border-radius:3px;font-family:var(--font-mono);font-size:0.95em;color:var(--ink)}
 pre{background:var(--pre-bg);color:var(--pre-ink);padding:1rem 1.25rem;border-radius:4px;overflow-x:auto;margin-bottom:1.5rem;font-family:var(--font-mono);font-size:0.95rem;line-height:1.5}
 pre code{background:transparent;padding:0;color:inherit}
-.kicker{font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.15em;color:var(--bronze);margin-bottom:0.5rem}
+.kicker{font-family:var(--font-ui);font-size:0.75rem;text-transform:uppercase;letter-spacing:0.22em;color:var(--bronze);margin-bottom:0.5rem}
 .header-rule{width:60px;height:2px;background:var(--accent);margin:1rem 0 2rem}
 [data-font="sans-serif"] body{font-family:var(--font-ui)}
 [data-font="sans-serif"] h1,

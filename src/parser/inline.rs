@@ -1,16 +1,12 @@
 use regex::Regex;
 use std::sync::LazyLock;
 
-static CODE_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"`([^`]+)`").unwrap());
+static CODE_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"`([^`]+)`").unwrap());
 static BOLD_ITALIC_RE: LazyLock<Regex> =
     LazyLock::new(|| Regex::new(r"\*\*\*(.+?)\*\*\*").unwrap());
-static BOLD_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\*\*(.+?)\*\*").unwrap());
-static ITALIC_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\*(.+?)\*").unwrap());
-static LINK_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap());
+static BOLD_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*\*(.+?)\*\*").unwrap());
+static ITALIC_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\*(.+?)\*").unwrap());
+static LINK_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"\[([^\]]+)\]\(([^)]+)\)").unwrap());
 
 pub fn escape_html(text: &str) -> String {
     let mut out = String::with_capacity(text.len());

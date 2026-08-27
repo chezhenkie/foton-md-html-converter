@@ -2,12 +2,27 @@ use super::inline::{escape_html, inline};
 use regex::Regex;
 use std::sync::LazyLock;
 
-static HEADING_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(#{1,6})\s+(.+)$").unwrap());
+static HEADING_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(#{1,6})\s+(.+)$").unwrap());
 static UL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-*]\s+").unwrap());
-static OL_RE: LazyLock<Regex> =
-    LazyLock::new(|| Regex::new(r"^(\d+)\.\s+(.+)$").unwrap());
+static OL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(\d+)\.\s+(.+)$").unwrap());
 static SEP_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-:]+$").unwrap());
+
+pub fn extract_lede(md: &str) -> Option<String> {
+    let lines: Vec<&str> = md.split('\n').collect();
+    if lines.first() != Some(&"---") {
+        return None;
+    }
+    for line in lines.iter().skip(1) {
+        let line = line.trim();
+        if line == "---" {
+            break;
+        }
+        if let Some(value) = line.strip_prefix("lede:") {
+            return Some(value.trim().to_string());
+        }
+    }
+    None
+}
 
 pub fn md_to_html(md: &str) -> String {
     let lines: Vec<&str> = md.split('\n').collect();
@@ -15,8 +30,8 @@ pub fn md_to_html(md: &str) -> String {
     let mut i = 0;
 
     if lines.first() == Some(&"---") {
-        for j in 1..lines.len() {
-            if lines[j].trim() == "---" {
+        for (j, line) in lines.iter().enumerate().skip(1) {
+            if line.trim() == "---" {
                 i = j + 1;
                 break;
             }
@@ -326,5 +341,16 @@ mod tests {
     #[test]
     fn h3_heading() {
         assert_eq!(md_to_html("### Subsection"), "<h3>Subsection</h3>");
+    }
+
+    #[test]
+    fn extract_lede_from_front_matter() {
+        let input = "---\nlede: A short summary\n---\n# Hello\n";
+        assert_eq!(extract_lede(input), Some("A short summary".to_string()));
+    }
+
+    #[test]
+    fn no_lede_when_no_front_matter() {
+        assert_eq!(extract_lede("# Hello\n"), None);
     }
 }
