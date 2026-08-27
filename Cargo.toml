@@ -1,0 +1,22 @@
+[package]
+name = "foton-md-html-converter"
+version = "1.0.0"
+edition = "2024"
+authors = ["westercoder"]
+description = "Markdown to styled HTML converter"
+license = "MIT"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+regex = "1"
+
+[[bin]]
+name = "foton-md-html-converter-x64"
+path = "src/main.rs"
+
+[build-dependencies]
+winresource = "0.1"
+
+[profile.release]
+lto = true
+strip = true

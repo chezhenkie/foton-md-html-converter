@@ -1,0 +1,19 @@
+# Agent instructions (local only)
+AGENTS.md
+agents.md
+
+# Repo handover manual (per-user, not project code)
+REPO-HANDOVER-MANUAL.md
+
+# Rust build artifacts
+/target
+
+# Release binaries and archives
+*.exe
+*.zip
+foton-md-html-converter-x64
+
+# Generated / runtime files
+docs/
+readme.html
+handoff-tmp.txt
