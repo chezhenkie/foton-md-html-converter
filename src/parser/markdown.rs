@@ -81,11 +81,11 @@ pub fn md_to_html(md: &str) -> String {
             } else if in_svg {
                 let raw = code_buf.join("\n");
                 let body = if raw.trim_start().starts_with("<svg") {
-                    raw
+                    format!("<div class=\"svg-diagram\">{}</div>", raw)
                 } else {
-                    super::ascii::ascii_to_svg(&raw)
+                    super::ascii::ascii_to_html(&raw)
                 };
-                html_parts.push(format!("<div class=\"svg-diagram\">{}</div>", body));
+                html_parts.push(body);
                 in_code = false;
                 in_svg = false;
                 code_lang.clear();
@@ -234,11 +234,11 @@ pub fn md_to_html(md: &str) -> String {
         if in_svg {
             let raw = code_buf.join("\n");
             let body = if raw.trim_start().starts_with("<svg") {
-                raw
+                format!("<div class=\"svg-diagram\">{}</div>", raw)
             } else {
-                super::ascii::ascii_to_svg(&raw)
+                super::ascii::ascii_to_html(&raw)
             };
-            html_parts.push(format!("<div class=\"svg-diagram\">{}</div>", body));
+            html_parts.push(body);
         } else {
             let lang_attr = if code_lang.is_empty() {
                 String::new()
@@ -413,9 +413,9 @@ mod tests {
             "```svg\n+------+      +------+\n|  A   | ---> |  B   |\n+------+      +------+\n```";
         let output = md_to_html(input);
         assert!(output.contains("<div class=\"svg-diagram\">"));
-        assert!(output.contains("<svg"));
-        assert!(output.contains("<rect"));
-        assert!(!output.contains("&lt;svg"));
+        assert!(output.contains("diagram-graph"));
+        assert!(output.contains("diagram-node"));
+        assert!(output.contains("__diagramQueue"));
         assert!(!output.contains("<pre><code"));
     }
 }

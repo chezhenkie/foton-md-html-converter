@@ -1,46 +1,51 @@
 #![allow(clippy::needless_range_loop)]
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
+use std::sync::atomic::{AtomicUsize, Ordering};
 
 const CHARW: f64 = 9.0;
 const CHARH: f64 = 18.0;
 
-#[derive(Clone, Copy)]
-struct Box_ {
+static DIAGRAM_COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+#[derive(Clone, Debug)]
+struct Label {
+    text: String,
     r0: usize,
     c0: usize,
     r1: usize,
     c1: usize,
 }
 
-#[derive(Clone, Copy)]
-struct Line {
-    x0: f64,
-    y0: f64,
-    x1: f64,
-    y1: f64,
+impl Label {
+    fn cx(&self) -> f64 {
+        ((self.c0 + self.c1) as f64 + 1.0) * CHARW / 2.0
+    }
+    fn cy(&self) -> f64 {
+        ((self.r0 + self.r1) as f64 + 1.0) * CHARH / 2.0
+    }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum Dir {
+    H,  // horizontal
+    V,  // vertical
+    Dn, // \  (down-right)
+    Up, // /  (up-right)
+}
+
+#[derive(Clone, Debug)]
+struct Connector {
+    dir: Dir,
+    r0: usize,
+    c0: usize,
+    r1: usize,
+    c1: usize,
     arrow: bool,
 }
 
-#[derive(Clone)]
-struct Label {
-    x: f64,
-    y: f64,
-    text: String,
-}
-
-fn inside_any_box(boxes: &[Box_], r: usize, c: usize) -> bool {
-    boxes
-        .iter()
-        .any(|b| r > b.r0 && r < b.r1 && c > b.c0 && c < b.c1)
-}
-
-fn cell_x(c: usize) -> f64 {
-    c as f64 * CHARW
-}
-
-fn cell_y(r: usize) -> f64 {
-    r as f64 * CHARH
-}
+// ---------------------------------------------------------------------------
+// 1. Decode: turn raw ASCII into a grid, labels, and connector strokes.
+// ---------------------------------------------------------------------------
 
 fn normalize(input: &str) -> Vec<Vec<char>> {
     let lines: Vec<&str> = input.split('\n').collect();
@@ -48,20 +53,19 @@ fn normalize(input: &str) -> Vec<Vec<char>> {
     let mut grid: Vec<Vec<char>> = Vec::new();
     for line in lines {
         let chars: Vec<char> = line.chars().collect();
-        let mut row: Vec<char> = chars.clone();
+        let mut row = chars.clone();
         row.resize(width, ' ');
         grid.push(row);
     }
-    // Map unicode box-drawing chars to ASCII equivalents
     for row in grid.iter_mut() {
         for ch in row.iter_mut() {
             *ch = match *ch {
-                '─' | '━' | '-' => '-',
-                '│' | '┃' | '|' => '|',
+                '─' | '━' | '−' => '-',
+                '│' | '┃' => '|',
                 '┌' | '┐' | '└' | '┘' | '├' | '┤' | '┬' | '┴' | '┼' | '╞' | '╡' | '╥' | '╨'
                 | '╫' | '+' => '+',
-                '→' | '➜' => '>',
-                '←' | '➤' => '<',
+                '→' | '➜' | '➤' => '>',
+                '←' => '<',
                 '↑' => '^',
                 '↓' => 'v',
                 _ => *ch,
@@ -71,166 +75,104 @@ fn normalize(input: &str) -> Vec<Vec<char>> {
     grid
 }
 
-fn is_box_edge_row(grid: &[Vec<char>], r: usize, c0: usize, c1: usize) -> bool {
-    if grid[r][c0] != '+' || grid[r][c1] != '+' {
-        return false;
-    }
-    for c in (c0 + 1)..c1 {
-        if grid[r][c] != '-' {
-            return false;
-        }
-    }
-    true
+fn is_connector(ch: char) -> bool {
+    matches!(ch, '-' | '|' | '+' | '/' | '\\' | '>' | '<' | '^' | 'v')
 }
 
-fn is_box_side_col(grid: &[Vec<char>], c: usize, r0: usize, r1: usize) -> bool {
-    grid[r0][c] == '+'
-        && grid[r1][c] == '+'
-        && (r1 - r0) >= 1
-        && (r0 + 1..r1).all(|r| grid[r][c] == '|')
-}
-
-fn detect_boxes(grid: &[Vec<char>]) -> Vec<Box_> {
+fn find_labels(grid: &[Vec<char>]) -> Vec<Label> {
     let rows = grid.len();
     if rows == 0 {
         return Vec::new();
     }
     let cols = grid[0].len();
-    let mut boxes: Vec<Box_> = Vec::new();
-    let mut taken: HashSet<(usize, usize, usize, usize)> = HashSet::new();
-    for r0 in 0..rows {
-        for c0 in 0..cols {
-            if grid[r0][c0] != '+' {
-                continue;
-            }
-            // find top-right corner
-            let mut c1 = c0 + 1;
-            while c1 < cols && (grid[r0][c1] == '-' || grid[r0][c1] == '+') {
-                c1 += 1;
-            }
-            c1 -= 1;
-            if c1 <= c0 || grid[r0][c1] != '+' {
-                continue;
-            }
-            // top edge valid
-            if !is_box_edge_row(grid, r0, c0, c1) {
-                continue;
-            }
-            // find bottom edge by descending
-            let mut r1 = r0 + 1;
-            let mut found = None;
-            while r1 < rows {
-                if grid[r1][c0] == '+' && grid[r1][c1] == '+' && is_box_edge_row(grid, r1, c0, c1) {
-                    found = Some(r1);
-                    break;
-                }
-                if grid[r1][c0] != '|' || grid[r1][c1] != '|' {
-                    break;
-                }
-                r1 += 1;
-            }
-            let r1 = match found {
-                Some(r) => r,
-                None => continue,
-            };
-            if !is_box_side_col(grid, c0, r0, r1) || !is_box_side_col(grid, c1, r0, r1) {
-                continue;
-            }
-            if r1 - r0 < 1 || c1 - c0 < 1 {
-                continue;
-            }
-            if taken.insert((r0, c0, r1, c1)) {
-                boxes.push(Box_ { r0, c0, r1, c1 });
-            }
-        }
-    }
-    boxes
-}
-
-fn inside_text(grid: &[Vec<char>], b: &Box_) -> String {
-    let mut parts: Vec<String> = Vec::new();
-    for r in (b.r0 + 1)..b.r1 {
-        let mut s = String::new();
-        for c in (b.c0 + 1)..b.c1 {
-            let ch = grid[r][c];
-            if ch == '|' || ch == '-' || ch == '+' || ch == '=' {
-                continue;
-            }
-            s.push(ch);
-        }
-        let t = s.trim();
-        if !t.is_empty() {
-            parts.push(t.to_string());
-        }
-    }
-    parts.join("\n")
-}
-
-pub fn ascii_to_svg(input: &str) -> String {
-    let grid = normalize(input);
-    let boxes = detect_boxes(&grid);
-
-    let rows = grid.len();
-    let cols = if rows == 0 { 0 } else { grid[0].len() };
-    let width = ((cols as f64) * CHARW).max(50.0);
-    let height = ((rows as f64) * CHARH).max(50.0);
-
-    let mut lines: Vec<Line> = Vec::new();
-    let mut labels: Vec<Label> = Vec::new();
-
-    // Determine occupied box-border cells
-    let mut border: HashSet<(usize, usize)> = HashSet::new();
-    for b in &boxes {
-        for c in b.c0..=b.c1 {
-            border.insert((b.r0, c));
-            border.insert((b.r1, c));
-        }
-        for r in b.r0..=b.r1 {
-            border.insert((r, b.c0));
-            border.insert((r, b.c1));
-        }
-    }
-
-    // Connectors: horizontal runs of '-' or '->'
+    let mut used = HashSet::new();
+    let mut labels = Vec::new();
     for r in 0..rows {
         let mut c = 0;
         while c < cols {
-            if border.contains(&(r, c)) || inside_any_box(&boxes, r, c) {
+            if used.contains(&(r, c)) {
                 c += 1;
                 continue;
             }
             let ch = grid[r][c];
-            if ch == '-' || ch == '>' || ch == '<' {
-                // find run end
-                let start = c;
-                let mut arrow_at_end = false;
-                let mut c2 = c;
-                while c2 < cols {
-                    let g = grid[r][c2];
-                    if border.contains(&(r, c2)) || inside_any_box(&boxes, r, c2) {
-                        break;
-                    }
-                    if g == '-' {
-                        c2 += 1;
-                    } else if g == '>' {
-                        arrow_at_end = true;
-                        c2 += 1;
-                        break;
-                    } else {
-                        break;
-                    }
+            if ch == ' ' || is_connector(ch) {
+                c += 1;
+                continue;
+            }
+            let start = c;
+            let mut end = c;
+            while end < cols {
+                let g = grid[r][end];
+                if g == ' ' || is_connector(g) {
+                    break;
                 }
-                let end = c2 - 1;
+                end += 1;
+            }
+            let text: String = grid[r][start..end].iter().collect();
+            let t = text.trim();
+            if !t.is_empty() {
+                for cc in start..end {
+                    used.insert((r, cc));
+                }
+                labels.push(Label {
+                    text: t.to_string(),
+                    r0: r,
+                    c0: start,
+                    r1: r,
+                    c1: end - 1,
+                });
+            }
+            c = end;
+        }
+    }
+    labels
+}
+
+fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
+    let rows = grid.len();
+    if rows == 0 {
+        return Vec::new();
+    }
+    let cols = grid[0].len();
+    let mut used: HashSet<(usize, usize)> = HashSet::new();
+    let mut out = Vec::new();
+
+    // Horizontal runs: -, possibly ending with > or starting with <
+    for r in 0..rows {
+        let mut c = 0;
+        while c < cols {
+            if used.contains(&(r, c)) {
+                c += 1;
+                continue;
+            }
+            let ch = grid[r][c];
+            if ch == '-' || ch == '<' {
+                let start = c;
+                let mut arrow = false;
+                let mut c2 = c;
+                if ch == '<' {
+                    c2 += 1;
+                    arrow = true;
+                }
+                while c2 < cols && grid[r][c2] == '-' {
+                    c2 += 1;
+                }
+                if c2 < cols && grid[r][c2] == '>' {
+                    arrow = true;
+                    c2 += 1;
+                }
+                let end = c2.saturating_sub(1);
                 if end >= start {
-                    let x0 = cell_x(start);
-                    let x1 = cell_x(end) + CHARW;
-                    let y = cell_y(r) + CHARH / 2.0;
-                    lines.push(Line {
-                        x0,
-                        y0: y,
-                        x1,
-                        y1: y,
-                        arrow: arrow_at_end,
+                    for cc in start..=end {
+                        used.insert((r, cc));
+                    }
+                    out.push(Connector {
+                        dir: Dir::H,
+                        r0: r,
+                        c0: start,
+                        r1: r,
+                        c1: end,
+                        arrow,
                     });
                 }
                 c = c2;
@@ -240,45 +182,42 @@ pub fn ascii_to_svg(input: &str) -> String {
         }
     }
 
-    // Connectors: vertical runs of '|'
+    // Vertical runs: |, possibly ending with v or starting with ^
     for c in 0..cols {
         let mut r = 0;
         while r < rows {
-            if border.contains(&(r, c)) || inside_any_box(&boxes, r, c) {
+            if used.contains(&(r, c)) {
                 r += 1;
                 continue;
             }
             let ch = grid[r][c];
-            if ch == '|' || ch == 'v' || ch == '^' {
+            if ch == '|' || ch == '^' {
                 let start = r;
-                let mut arrow_at_end = false;
+                let mut arrow = false;
                 let mut r2 = r;
-                while r2 < rows {
-                    let g = grid[r2][c];
-                    if border.contains(&(r2, c)) || inside_any_box(&boxes, r2, c) {
-                        break;
-                    }
-                    if g == '|' {
-                        r2 += 1;
-                    } else if g == 'v' {
-                        arrow_at_end = true;
-                        r2 += 1;
-                        break;
-                    } else {
-                        break;
-                    }
+                if ch == '^' {
+                    r2 += 1;
+                    arrow = true;
                 }
-                let end = r2 - 1;
+                while r2 < rows && grid[r2][c] == '|' {
+                    r2 += 1;
+                }
+                if r2 < rows && grid[r2][c] == 'v' {
+                    arrow = true;
+                    r2 += 1;
+                }
+                let end = r2.saturating_sub(1);
                 if end >= start {
-                    let x = cell_x(c) + CHARW / 2.0;
-                    let y0 = cell_y(start);
-                    let y1 = cell_y(end) + CHARH;
-                    lines.push(Line {
-                        x0: x,
-                        y0,
-                        x1: x,
-                        y1,
-                        arrow: arrow_at_end,
+                    for rr in start..=end {
+                        used.insert((rr, c));
+                    }
+                    out.push(Connector {
+                        dir: Dir::V,
+                        r0: start,
+                        c0: c,
+                        r1: end,
+                        c1: c,
+                        arrow,
                     });
                 }
                 r = r2;
@@ -288,26 +227,17 @@ pub fn ascii_to_svg(input: &str) -> String {
         }
     }
 
-    // Connectors: diagonal runs of '/' and '\'
-    let mut diag_used: HashSet<(usize, usize)> = HashSet::new();
+    // Diagonal runs: / and \
     for r in 0..rows {
         for c in 0..cols {
-            if border.contains(&(r, c))
-                || inside_any_box(&boxes, r, c)
-                || diag_used.contains(&(r, c))
-            {
+            if used.contains(&(r, c)) {
                 continue;
             }
             let ch = grid[r][c];
             if ch != '/' && ch != '\\' {
                 continue;
             }
-            let (step_r, step_c): (isize, isize) = if ch == '/' {
-                (1, -1) // '/' continues to larger r, smaller c
-            } else {
-                (1, 1) // '\\' continues to larger r, larger c
-            };
-            // Walk backward from (r,c) to find the start of the chain.
+            let (step_r, step_c): (isize, isize) = if ch == '/' { (1, -1) } else { (1, 1) };
             let mut cells: Vec<(usize, usize)> = Vec::new();
             let mut rr = r as isize;
             let mut cc = c as isize;
@@ -319,14 +249,13 @@ pub fn ascii_to_svg(input: &str) -> String {
                 }
                 let ur = rr as usize;
                 let uc = cc as usize;
-                if border.contains(&(ur, uc)) || grid[ur][uc] != ch {
+                if used.contains(&(ur, uc)) || grid[ur][uc] != ch {
                     break;
                 }
                 cells.push((ur, uc));
             }
             cells.reverse();
             cells.push((r, c));
-            // Walk forward to find the end of the chain.
             let mut rr = r as isize;
             let mut cc = c as isize;
             loop {
@@ -337,161 +266,349 @@ pub fn ascii_to_svg(input: &str) -> String {
                 }
                 let ur = rr as usize;
                 let uc = cc as usize;
-                if border.contains(&(ur, uc)) || grid[ur][uc] != ch {
+                if used.contains(&(ur, uc)) || grid[ur][uc] != ch {
                     break;
                 }
                 cells.push((ur, uc));
             }
             for &(ur, uc) in &cells {
-                diag_used.insert((ur, uc));
+                used.insert((ur, uc));
             }
-            let (r0, c0) = cells[0];
-            let (r1, c1) = *cells.last().unwrap();
-            if ch == '/' {
-                let x0 = cell_x(c0);
-                let y0 = cell_y(r0) + CHARH;
-                let x1 = cell_x(c1) + CHARW;
-                let y1 = cell_y(r1);
-                lines.push(Line {
-                    x0,
-                    y0,
-                    x1,
-                    y1,
-                    arrow: false,
-                });
-            } else {
-                let x0 = cell_x(c0);
-                let y0 = cell_y(r0);
-                let x1 = cell_x(c1) + CHARW;
-                let y1 = cell_y(r1) + CHARH;
-                lines.push(Line {
-                    x0,
-                    y0,
-                    x1,
-                    y1,
+            if !cells.is_empty() {
+                let dir = if ch == '/' { Dir::Up } else { Dir::Dn };
+                out.push(Connector {
+                    dir,
+                    r0: cells[0].0,
+                    c0: cells[0].1,
+                    r1: cells.last().unwrap().0,
+                    c1: cells.last().unwrap().1,
                     arrow: false,
                 });
             }
         }
     }
 
-    // Labels inside boxes
-    for b in &boxes {
-        let text = inside_text(&grid, b);
-        if !text.is_empty() {
-            let cx = cell_x(b.c0) + ((b.c1 - b.c0 + 1) as f64) * CHARW / 2.0;
-            let cy = cell_y(b.r0) + ((b.r1 - b.r0 + 1) as f64) * CHARH / 2.0;
-            labels.push(Label { x: cx, y: cy, text });
-        }
-    }
-
-    // Free-standing labels (text not in boxes, not on connectors)
-    for r in 0..rows {
-        let mut c = 0;
-        while c < cols {
-            if border.contains(&(r, c)) || inside_any_box(&boxes, r, c) {
-                c += 1;
-                continue;
-            }
-            let ch = grid[r][c];
-            if ch == ' '
-                || ch == '-'
-                || ch == '|'
-                || ch == '+'
-                || ch == '>'
-                || ch == '<'
-                || ch == '/'
-                || ch == '\\'
-            {
-                c += 1;
-                continue;
-            }
-            // collect text run
-            let start = c;
-            let mut end = c;
-            while end < cols {
-                let g = grid[r][end];
-                if border.contains(&(r, end))
-                    || inside_any_box(&boxes, r, end)
-                    || g == ' '
-                    || g == '-'
-                    || g == '|'
-                    || g == '+'
-                    || g == '>'
-                    || g == '<'
-                    || g == '/'
-                    || g == '\\'
-                {
-                    break;
-                }
-                end += 1;
-            }
-            let text: String = grid[r][start..end].iter().collect();
-            let t = text.trim();
-            if !t.is_empty() {
-                let x = cell_x(start) + ((end - start) as f64) * CHARW / 2.0;
-                let y = cell_y(r) + CHARH / 2.0;
-                labels.push(Label {
-                    x,
-                    y,
-                    text: t.to_string(),
-                });
-            }
-            c = end;
-        }
-    }
-
-    let mut out = String::new();
-    out.push_str(&format!(
-        "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 {:.0} {:.0}\" font-family=\"sans-serif\"><defs><marker id=\"arrow\" viewBox=\"0 0 10 10\" refX=\"9\" refY=\"5\" markerWidth=\"6\" markerHeight=\"6\" orient=\"auto-start-reverse\"><path d=\"M 0 0 L 10 5 L 0 10 z\" fill=\"var(--accent)\"/></marker></defs>",
-        width, height
-    ));
-    out.push_str("\n  <rect width=\"100%\" height=\"100%\" fill=\"transparent\"/>");
-    for b in &boxes {
-        let x = cell_x(b.c0);
-        let y = cell_y(b.r0);
-        let w = (b.c1 - b.c0 + 1) as f64 * CHARW;
-        let h = (b.r1 - b.r0 + 1) as f64 * CHARH;
-        out.push_str(&format!(
-            "\n  <rect x=\"{:.1}\" y=\"{:.1}\" width=\"{:.1}\" height=\"{:.1}\" rx=\"6\" fill=\"var(--card)\" stroke=\"var(--accent)\" stroke-width=\"1.5\"/>",
-            x, y, w, h
-        ));
-    }
-    for l in &lines {
-        if l.arrow {
-            out.push_str(&format!(
-                "\n  <line x1=\"{:.1}\" y1=\"{:.1}\" x2=\"{:.1}\" y2=\"{:.1}\" stroke=\"var(--accent)\" stroke-width=\"1.5\" marker-end=\"url(#arrow)\"/>",
-                l.x0, l.y0, l.x1, l.y1
-            ));
-        } else {
-            out.push_str(&format!(
-                "\n  <line x1=\"{:.1}\" y1=\"{:.1}\" x2=\"{:.1}\" y2=\"{:.1}\" stroke=\"var(--ink-soft)\" stroke-width=\"1.5\"/>",
-                l.x0, l.y0, l.x1, l.y1
-            ));
-        }
-    }
-    for lb in &labels {
-        let sub: Vec<&str> = lb.text.split('\n').collect();
-        let n = sub.len() as f64;
-        let lineh = CHARH;
-        let first_y = lb.y - ((n - 1.0) * lineh) / 2.0;
-        for (i, line) in sub.iter().enumerate() {
-            let y = first_y + (i as f64) * lineh + CHARH * 0.6;
-            out.push_str(&format!(
-                "\n  <text x=\"{:.1}\" y=\"{:.1}\" text-anchor=\"middle\" fill=\"var(--ink)\" font-size=\"12\">{}</text>",
-                lb.x, y, escape_text(line)
-            ));
-        }
-    }
-    out.push_str("\n</svg>");
     out
 }
 
-fn escape_text(s: &str) -> String {
+fn is_box_border(grid: &[Vec<char>], conn: &Connector) -> bool {
+    let rows = grid.len();
+    let cols = if rows == 0 { 0 } else { grid[0].len() };
+    let is_text = |r: usize, c: usize| {
+        if r >= rows || c >= cols {
+            return false;
+        }
+        let ch = grid[r][c];
+        ch != ' ' && !is_connector(ch)
+    };
+    match conn.dir {
+        Dir::H => {
+            let r = conn.r0;
+            for c in conn.c0..=conn.c1 {
+                if is_text(r.saturating_sub(1), c) || is_text((r + 1).min(rows.saturating_sub(1)), c) {
+                    return true;
+                }
+            }
+            false
+        }
+        Dir::V => {
+            let c = conn.c0;
+            for r in conn.r0..=conn.r1 {
+                if is_text(r, c.saturating_sub(1)) || is_text(r, (c + 1).min(cols.saturating_sub(1))) {
+                    return true;
+                }
+            }
+            false
+        }
+        _ => false,
+    }
+}
+
+fn nearest_in_direction(labels: &[Label], x: f64, y: f64, dx: f64, dy: f64) -> Option<usize> {
+    let mut best = None;
+    let mut best_d = f64::INFINITY;
+    for (i, lb) in labels.iter().enumerate() {
+        let vx = lb.cx() - x;
+        let vy = lb.cy() - y;
+        let dot = vx * dx + vy * dy;
+        if dot <= 0.0 {
+            continue;
+        }
+        let d = vx * vx + vy * vy;
+        if d < best_d {
+            best_d = d;
+            best = Some(i);
+        }
+    }
+    best
+}
+
+fn connector_source_target(labels: &[Label], conn: &Connector) -> (Option<usize>, Option<usize>) {
+    match conn.dir {
+        Dir::H => {
+            let y = cell_cy(conn.r0);
+            let x0 = cell_x(conn.c0);
+            let x1 = cell_x(conn.c1) + CHARW;
+            let from = nearest_in_direction(labels, x0, y, -1.0, 0.0);
+            let to = nearest_in_direction(labels, x1, y, 1.0, 0.0);
+            (from, to)
+        }
+        Dir::V => {
+            let x = cell_cx(conn.c0);
+            let y0 = cell_y(conn.r0);
+            let y1 = cell_y(conn.r1) + CHARH;
+            let from = nearest_in_direction(labels, x, y0, 0.0, -1.0);
+            let to = nearest_in_direction(labels, x, y1, 0.0, 1.0);
+            (from, to)
+        }
+        Dir::Dn => {
+            let x0 = cell_x(conn.c0);
+            let y0 = cell_y(conn.r0);
+            let x1 = cell_x(conn.c1) + CHARW;
+            let y1 = cell_y(conn.r1) + CHARH;
+            let from = nearest_in_direction(labels, x0, y0, -1.0, -1.0);
+            let to = nearest_in_direction(labels, x1, y1, 1.0, 1.0);
+            (from, to)
+        }
+        Dir::Up => {
+            let x0 = cell_x(conn.c0) + CHARW;
+            let y0 = cell_y(conn.r0);
+            let x1 = cell_x(conn.c1);
+            let y1 = cell_y(conn.r1) + CHARH;
+            let from = nearest_in_direction(labels, x0, y0, 1.0, -1.0);
+            let to = nearest_in_direction(labels, x1, y1, -1.0, 1.0);
+            (from, to)
+        }
+    }
+}
+
+fn cell_x(c: usize) -> f64 {
+    c as f64 * CHARW
+}
+fn cell_y(r: usize) -> f64 {
+    r as f64 * CHARH
+}
+fn cell_cx(c: usize) -> f64 {
+    c as f64 * CHARW + CHARW / 2.0
+}
+fn cell_cy(r: usize) -> f64 {
+    r as f64 * CHARH + CHARH / 2.0
+}
+
+// ---------------------------------------------------------------------------
+// 2. Rebuild logically: labels -> logical nodes, connectors -> logical edges.
+// ---------------------------------------------------------------------------
+
+#[derive(Clone, Debug)]
+pub struct LogicalNode {
+    pub id: String,
+    pub row: usize,
+    pub x_order: usize,
+    pub text: String,
+}
+
+#[derive(Clone, Debug)]
+pub struct LogicalEdge {
+    pub source_id: String,
+    pub target_id: String,
+    pub arrow: bool,
+    pub loopback: bool,
+}
+
+#[derive(Clone, Debug)]
+pub struct LogicalGraph {
+    pub diagram_id: String,
+    pub nodes: Vec<LogicalNode>,
+    pub edges: Vec<LogicalEdge>,
+}
+
+fn build_logical_graph(
+    labels: &[Label],
+    connectors: &[Connector],
+    grid: &[Vec<char>],
+    diagram_id: &str,
+) -> LogicalGraph {
+    let mut nodes: Vec<LogicalNode> = Vec::new();
+    let mut rows: HashMap<usize, Vec<(usize, &Label)>> = HashMap::new();
+
+    for (i, lb) in labels.iter().enumerate() {
+        rows.entry(lb.r0).or_default().push((i, lb));
+    }
+
+    let mut sorted_rows: Vec<usize> = rows.keys().copied().collect();
+    sorted_rows.sort_unstable();
+
+    for row_index in sorted_rows {
+        let mut row_nodes = rows.remove(&row_index).unwrap();
+        row_nodes.sort_by(|a, b| a.1.c0.cmp(&b.1.c0));
+        for (x_order, (label_index, lb)) in row_nodes.iter().enumerate() {
+            nodes.push(LogicalNode {
+                id: format!("{}-n{}", diagram_id, label_index),
+                row: row_index,
+                x_order,
+                text: lb.text.clone(),
+            });
+        }
+    }
+
+    let mut raw_edges: Vec<(usize, usize, usize, bool)> = Vec::new();
+    for (ci, conn) in connectors.iter().enumerate() {
+        if is_box_border(grid, conn) {
+            continue;
+        }
+        let (from, to) = connector_source_target(labels, conn);
+        if let (Some(f), Some(t)) = (from, to) {
+            if f != t {
+                raw_edges.push((f, t, ci, conn.arrow));
+            }
+        }
+    }
+
+    // Fan-out: per source, ensure distinct targets by connector and target ordering.
+    let mut grouped: HashMap<usize, Vec<(usize, usize, bool)>> = HashMap::new();
+    for (f, t, ci, arrow) in raw_edges {
+        grouped.entry(f).or_default().push((t, ci, arrow));
+    }
+
+    let mut edges: Vec<LogicalEdge> = Vec::new();
+    for (from, group) in grouped {
+        let mut order: Vec<(usize, usize, bool)> = group;
+        order.sort_by(|a, b| {
+            let ca = &connectors[a.1];
+            let cb = &connectors[b.1];
+            let ma = (ca.c0 + ca.c1) as f64;
+            let mb = (cb.c0 + cb.c1) as f64;
+            ma.partial_cmp(&mb).unwrap()
+        });
+
+        let mut targets: Vec<usize> = order.iter().map(|x| x.0).collect();
+        targets.sort_by(|a, b| labels[*a].cx().partial_cmp(&labels[*b].cx()).unwrap());
+        targets.dedup();
+
+        for (i, (_, _ci, arrow)) in order.iter().enumerate() {
+            let to = targets.get(i).copied().unwrap_or(order[i].0);
+            let source_row = labels[from].r0;
+            let target_row = labels[to].r0;
+            edges.push(LogicalEdge {
+                source_id: format!("{}-n{}", diagram_id, from),
+                target_id: format!("{}-n{}", diagram_id, to),
+                arrow: *arrow,
+                loopback: source_row > target_row,
+            });
+        }
+    }
+
+    LogicalGraph {
+        diagram_id: diagram_id.to_string(),
+        nodes,
+        edges,
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 3. Render graphically: emit DOM rows + data block; browser draws edges.
+// ---------------------------------------------------------------------------
+
+fn escape_html(s: &str) -> String {
     s.replace('&', "&amp;")
         .replace('<', "&lt;")
         .replace('>', "&gt;")
+        .replace('"', "&quot;")
 }
+
+fn escape_js_string(s: &str) -> String {
+    s.replace('\\', "\\\\")
+        .replace('"', "\\\"")
+        .replace('\n', "\\n")
+        .replace('\r', "\\r")
+        .replace('\t', "\\t")
+}
+
+fn render_html(graph: &LogicalGraph) -> String {
+    let mut rows: HashMap<usize, Vec<&LogicalNode>> = HashMap::new();
+    for node in &graph.nodes {
+        rows.entry(node.row).or_default().push(node);
+    }
+    for row in rows.values_mut() {
+        row.sort_by(|a, b| a.x_order.cmp(&b.x_order));
+    }
+    let mut sorted_rows: Vec<usize> = rows.keys().copied().collect();
+    sorted_rows.sort_unstable();
+
+    let mut layers = String::new();
+    for row in sorted_rows {
+        let nodes = rows.get(&row).unwrap();
+        let mut node_html = String::new();
+        for n in nodes {
+            node_html.push_str(&format!(
+                "<div class=\"diagram-node\" data-dg-node=\"{}\">{}</div>",
+                n.id,
+                escape_html(&n.text)
+            ));
+        }
+        layers.push_str(&format!("<div class=\"diagram-row\">{}</div>", node_html));
+    }
+
+    let mut nodes_json = String::from("[");
+    for (i, n) in graph.nodes.iter().enumerate() {
+        if i > 0 {
+            nodes_json.push(',');
+        }
+        nodes_json.push_str(&format!(
+            "{{\"id\":\"{}\",\"row\":{},\"x\":{},\"text\":\"{}\"}}",
+            n.id,
+            n.row,
+            n.x_order,
+            escape_js_string(&n.text)
+        ));
+    }
+    nodes_json.push(']');
+
+    let mut edges_json = String::from("[");
+    for (i, e) in graph.edges.iter().enumerate() {
+        if i > 0 {
+            edges_json.push(',');
+        }
+        edges_json.push_str(&format!(
+            "{{\"s\":\"{}\",\"t\":\"{}\",\"arrow\":{},\"loop\":{}}}",
+            e.source_id,
+            e.target_id,
+            e.arrow,
+            e.loopback
+        ));
+    }
+    edges_json.push(']');
+
+    format!(
+        r#"<div class="svg-diagram">
+  <div class="diagram-graph" id="{}">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers">{}</div>
+  </div>
+</div>
+<script>
+(function(){{
+  var data = {{"id":"{}","nodes":{},"edges":{}}};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+}})();
+</script>"#,
+        graph.diagram_id, layers, graph.diagram_id, nodes_json, edges_json
+    )
+}
+
+pub fn ascii_to_html(input: &str) -> String {
+    let grid = normalize(input);
+    let labels = find_labels(&grid);
+    let connectors = find_connectors(&grid);
+    let id = format!("dg-{}", DIAGRAM_COUNTER.fetch_add(1, Ordering::Relaxed));
+    let graph = build_logical_graph(&labels, &connectors, &grid, &id);
+    render_html(&graph)
+}
+
+// ---------------------------------------------------------------------------
+// Tests: verify decode and logical structure.
+// ---------------------------------------------------------------------------
 
 #[cfg(test)]
 mod tests {
@@ -500,25 +617,64 @@ mod tests {
     #[test]
     fn basic_box_and_arrow() {
         let input = "+------+      +------+\n|  A   | ---> |  B   |\n+------+      +------+";
-        let svg = ascii_to_svg(input);
-        assert!(svg.contains("<svg"));
-        assert!(svg.contains("<rect"));
-        assert!(svg.contains("</svg>"));
-        assert!(svg.contains("A"));
-        assert!(svg.contains("B"));
-        assert!(svg.contains("marker-end"));
+        let html = ascii_to_html(input);
+        assert!(html.contains("diagram-graph"));
+        assert!(html.contains("diagram-node"));
+        assert!(html.contains("A"));
+        assert!(html.contains("B"));
+        assert!(html.contains("__diagramQueue"));
     }
 
     #[test]
     fn unicode_boxes_normalized() {
         let input = "┌──────┐\n│  Hi  │\n└──────┘";
-        let svg = ascii_to_svg(input);
-        assert!(svg.contains("<rect"));
-        assert!(svg.contains("Hi"));
+        let html = ascii_to_html(input);
+        assert!(html.contains("diagram-node"));
+        assert!(html.contains("Hi"));
     }
 
     #[test]
     fn no_crash_on_empty() {
-        assert!(ascii_to_svg("").contains("<svg"));
+        assert!(ascii_to_html("").contains("diagram-graph"));
+    }
+
+    #[test]
+    fn hub_fan_out_distinct_targets() {
+        let input = "+-----+\n| Hub |\n+--+--+\n  / | \\\n A   B   C";
+        let html = ascii_to_html(input);
+        assert!(html.contains("Hub"));
+        assert!(html.contains("A"));
+        assert!(html.contains("B"));
+        assert!(html.contains("C"));
+        let edge_count = html.matches("\"arrow\":").count();
+        assert_eq!(edge_count, 3, "expected 3 edges, got {}", edge_count);
+    }
+
+    #[test]
+    fn vertical_chain() {
+        let input = " A \n | \n v \n B ";
+        let html = ascii_to_html(input);
+        let edge_count = html.matches("\"arrow\":").count();
+        assert_eq!(edge_count, 1);
+        assert!(html.contains("A"));
+        assert!(html.contains("B"));
+    }
+
+    #[test]
+    fn horizontal_chain() {
+        let input = " A  --->  B ";
+        let html = ascii_to_html(input);
+        let edge_count = html.matches("\"arrow\":").count();
+        assert_eq!(edge_count, 1);
+    }
+
+    #[test]
+    fn diagonal_pair() {
+        let input = "A   \n \\   \n   B";
+        let html = ascii_to_html(input);
+        let edge_count = html.matches("\"arrow\":").count();
+        assert_eq!(edge_count, 1);
+        assert!(html.contains("A"));
+        assert!(html.contains("B"));
     }
 }

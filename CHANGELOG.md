@@ -1,5 +1,33 @@
 # Changelog
 
+## v1.3.0 (2026-08-28)
+
+### Changed
+
+- ASCII diagrams now render as DOM nodes + runtime SVG edges instead of a static coordinate-based SVG
+- The parser still decodes labels and connectors logically; the graphical layer builds rows of HTML nodes and lets the browser lay them out
+- Edges are drawn at runtime by computing box centers from the live DOM, using cubic-bezier curves like `flow-mockup-darkV7.html`
+- Loopback edges (source below target) render as dashed curves with a side bulge
+
+### Added
+
+- `src/js/diagrams.rs` -- `Diagrams` module that consumes `window.__diagramQueue` and draws edges
+- `.diagram-graph`, `.diagram-edges`, `.diagram-layers`, `.diagram-row`, `.diagram-node`, `.diagram-edge` CSS classes
+
+## v1.2.0 (2026-08-28)
+
+### Changed
+
+- Rewrote ASCII-to-SVG diagram parser with a text-first approach: node labels are detected first, connectors are inferred from strokes (`-`, `|`, `/`, `\`, arrows), and boxes are drawn around the text afterwards
+- Connectors are assigned to source/target labels by direction: horizontal strokes connect left-right labels, vertical strokes connect above-below labels, diagonals connect along their axis
+- Fan-out routing: multiple connectors from one source map to distinct targets by horizontal ordering, fixing the Hub -> A/B/C misalignment bug
+- Box borders from the original ASCII are filtered out so they do not create false edges
+- Edge routing snaps to box edges: straight horizontal/vertical lines and straight diagonal lines
+
+### Added
+
+- `diagram-visual-tests/` folder with `.md` and generated `.html` samples for visual inspection
+
 ## v1.1.0 (2026-08-28)
 
 ### Features

@@ -64,7 +64,7 @@ All arguments are optional.
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
-| ```` ```svg ... ``` ```` | ASCII diagram auto-converted to inline SVG; if content starts with `<svg`, passed through raw |
+| ```` ```svg ... ``` ```` | ASCII diagram auto-converted to DOM nodes + runtime SVG edges; if content starts with `<svg`, passed through raw |
 
 ## 5. Examples
 
