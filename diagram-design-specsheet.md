@@ -685,7 +685,7 @@ rendering but are not listed for verbatim porting.
 | v1.1.0 | d93a60d | Static SVG emission |
 | v1.2.0 | (pre-6ef411c) | text-first parser rewrite; logical decode separated |
 | v1.3.0 | 6ef411c | DOM layout + runtime SVG edges; --edge and --node-bg added; edge weight 2.8; lighter light edges; visual test folder updated |
-| v1.3.1 | (this commit) | Arrowhead markers removed; direction via hover/tap dash-march flow (section 6.6) with lit/dim/pin; h/d geometry hints on edges; reversed connectors swap source/target; context-aware connector splitting and = normalization in parser; 43 tests; 7 visual test files |
+| v1.3.1 | 85819b8 | Arrowhead markers removed; direction via hover/tap dash-march flow (section 6.6) with lit/dim/pin; h/d geometry hints on edges; reversed connectors swap source/target; context-aware connector splitting and = normalization in parser; 43 tests; 7 visual test files |
 
 This document is written against the v1.3.1 base. Future versions append a row above and update
 the sections they touch; they do not rewrite history.
