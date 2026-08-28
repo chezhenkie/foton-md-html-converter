@@ -19,6 +19,7 @@ Everything needed to build a page with three complete color palettes, each with 
 | Saturation slider: -3 to +3 (15% per step, disabled in mono) |
 | Page chrome: header, kicker, h1, lede |
 | Content styles: headings, tables, callouts, code |
+| SVG diagram wrapper (.svg-diagram) for ASCII-to-SVG rendering |
 | OS detection + native font stacks (including Linux) |
 | Responsive layout (mobile breakpoint at 620px) |
 | System preference detection (prefers-color-scheme) |
@@ -499,6 +500,10 @@ tr:nth-child(even) td { background: var(--zebra); }
 
 .callout { border-left: 4px solid var(--accent); background: var(--card);
   padding: 16px 20px; margin: 22px 0; font-style: italic; color: var(--ink-soft); }
+
+.svg-diagram { display: block; text-align: center; margin: 24px 0;
+  padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: 4px; }
+.svg-diagram svg { max-width: 100%; height: auto; }
 
 code { font-family: var(--font-mono); font-size: 13px; background: var(--code-bg);
   color: var(--espresso); padding: 1px 6px; border-radius: 3px; }

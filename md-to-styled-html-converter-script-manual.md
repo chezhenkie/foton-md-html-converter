@@ -64,6 +64,7 @@ All arguments are optional.
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
+| ```` ```svg ... ``` ```` | ASCII diagram auto-converted to inline SVG; if content starts with `<svg`, passed through raw |
 
 ## 5. Examples
 
@@ -94,6 +95,8 @@ foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
+- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as sharp inline SVG (boxes, labels, arrows, and `/ \` branches), themed to match the page. Raw `<svg>` markup in the fence passes through verbatim.
+
 
 ## 7. Script structure
 
@@ -125,6 +128,7 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 | `src/html/builder.rs` | Module 4 (build_page) | Page assembly |
 | `src/parser/markdown.rs` | Module 3 (md_to_html) | Markdown parser |
 | `src/parser/inline.rs` | Module 3 (inline, escape_html) | Inline formatting |
+| `src/parser/ascii.rs` | Module 3 (ascii_to_svg) | ASCII diagram to SVG conversion |
 | `src/io/files.rs` | Module 3 (TITLE_MAP, collect_source_files) | File discovery |
 | `src/io/convert.rs` | Module 3 (convert_file) | Conversion loop |
 | `src/main.rs` | Module 3 (main) | CLI entry point |
@@ -141,6 +145,7 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 - Rust port complete and functional
 - Both Windows (GNU/MSVC) and Linux (musl static) release binaries build clean
 - Conversion tested; output matches the original Python v7 behavior
+- v1.1.0 adds ASCII-to-SVG diagram rendering in ` ```svg ` fences
 
 ### Windows exe metadata
 
