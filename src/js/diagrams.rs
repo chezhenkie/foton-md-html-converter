@@ -43,10 +43,20 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
   function drawEdge(graph,svg,edge,sourceNode,targetNode){
     var S=center(graph,sourceNode);
     var T=center(graph,targetNode);
+    var dx=T.x-S.x;
+    var dy=T.y-S.y;
     var up=edge.loop||T.y+S.h<S.y;
 
     var p0,p3,c1,c2;
-    if(up){
+    if(Math.abs(dy)<40){
+      var dir=dx>=0?1:-1;
+      p0={x:S.x+dir*S.w/2,y:S.y};
+      p3={x:T.x-dir*T.w/2,y:T.y};
+      var midY=(p0.y+p3.y)/2;
+      var spread=Math.abs(dx)*0.4;
+      c1={x:p0.x+dir*spread,y:midY};
+      c2={x:p3.x-dir*spread,y:midY};
+    }else if(up){
       p0={x:S.x,y:S.y-S.h/2};
       p3={x:T.x,y:T.y+S.h/2};
       var bulge=90;
