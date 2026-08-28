@@ -1,5 +1,15 @@
 # Changelog
 
+## v1.1.0 (2026-08-28)
+
+### Features
+
+- ASCII-to-SVG diagram rendering: a ` ```svg ` fenced block containing ASCII box-drawing now converts to an inline SVG diagram in the output page
+- Diagram detection: boxes (`+`/`-`/`|` borders), text labels, `-->` arrows, horizontal/vertical connectors, and `/ \` diagonal branch lines
+- Unicode box-drawing characters (`──│┌┐└┘├┤┬┴┼→`) are normalized to their ASCII equivalents before detection
+- Raw SVG passthrough retained: if the ` ```svg ` content starts with `<svg`, it is passed through verbatim (no conversion)
+- New `.svg-diagram` CSS wrapper (centered card) for rendered diagrams
+
 ## v1.0.0 (2026-08-26)
 
 First release of the Rust port.

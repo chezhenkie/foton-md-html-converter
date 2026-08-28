@@ -39,6 +39,7 @@ pub fn md_to_html(md: &str) -> String {
     }
 
     let mut in_code = false;
+    let mut in_svg = false;
     let mut in_table = false;
     let mut in_ul = false;
     let mut in_ol = false;
@@ -73,7 +74,21 @@ pub fn md_to_html(md: &str) -> String {
                 close_table(&mut in_table, &mut html_parts);
                 in_code = true;
                 code_lang = line.trim()[3..].trim().to_string();
+                if code_lang == "svg" {
+                    in_svg = true;
+                }
                 code_buf.clear();
+            } else if in_svg {
+                let raw = code_buf.join("\n");
+                let body = if raw.trim_start().starts_with("<svg") {
+                    raw
+                } else {
+                    super::ascii::ascii_to_svg(&raw)
+                };
+                html_parts.push(format!("<div class=\"svg-diagram\">{}</div>", body));
+                in_code = false;
+                in_svg = false;
+                code_lang.clear();
             } else {
                 let lang_attr = if code_lang.is_empty() {
                     String::new()
@@ -216,13 +231,23 @@ pub fn md_to_html(md: &str) -> String {
     close_table(&mut in_table, &mut html_parts);
 
     if in_code {
-        let lang_attr = if code_lang.is_empty() {
-            String::new()
+        if in_svg {
+            let raw = code_buf.join("\n");
+            let body = if raw.trim_start().starts_with("<svg") {
+                raw
+            } else {
+                super::ascii::ascii_to_svg(&raw)
+            };
+            html_parts.push(format!("<div class=\"svg-diagram\">{}</div>", body));
         } else {
-            format!(" class=\"language-{}\"", code_lang)
-        };
-        let joined = escape_html(&code_buf.join("\n"));
-        html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
+            let lang_attr = if code_lang.is_empty() {
+                String::new()
+            } else {
+                format!(" class=\"language-{}\"", code_lang)
+            };
+            let joined = escape_html(&code_buf.join("\n"));
+            html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
+        }
     }
 
     html_parts.join("\n")
@@ -352,5 +377,45 @@ mod tests {
     #[test]
     fn no_lede_when_no_front_matter() {
         assert_eq!(extract_lede("# Hello\n"), None);
+    }
+
+    #[test]
+    fn svg_fenced_block_passes_through_verbatim() {
+        let input = "```svg\n<svg viewBox=\"0 0 100 20\"><rect x=\"5\" y=\"5\" width=\"90\" height=\"10\"/></svg>\n```";
+        let output = md_to_html(input);
+        assert!(output.contains("<svg viewBox=\"0 0 100 20\">"));
+        assert!(output.contains("</svg>"));
+        assert!(!output.contains("&lt;svg"));
+        assert!(!output.contains("&lt;/svg&gt;"));
+    }
+
+    #[test]
+    fn fenced_code_block_still_escapes() {
+        let input = "```html\n<div class=\"x\">5 < 10</div>\n```";
+        let output = md_to_html(input);
+        assert!(output.contains("&lt;div"));
+        assert!(output.contains("&lt;"));
+        assert!(!output.contains("<div class=\"svg-diagram\">"));
+    }
+
+    #[test]
+    fn unclosed_svg_block_is_flushed_at_eof() {
+        let input = "```svg\n<svg viewBox=\"0 0 100 20\"><rect/></svg>\n";
+        let output = md_to_html(input);
+        assert!(output.contains("<div class=\"svg-diagram\">"));
+        assert!(output.contains("<svg viewBox=\"0 0 100 20\">"));
+        assert!(!output.contains("&lt;svg"));
+    }
+
+    #[test]
+    fn ascii_diagram_in_svg_fence_is_converted() {
+        let input =
+            "```svg\n+------+      +------+\n|  A   | ---> |  B   |\n+------+      +------+\n```";
+        let output = md_to_html(input);
+        assert!(output.contains("<div class=\"svg-diagram\">"));
+        assert!(output.contains("<svg"));
+        assert!(output.contains("<rect"));
+        assert!(!output.contains("&lt;svg"));
+        assert!(!output.contains("<pre><code"));
     }
 }

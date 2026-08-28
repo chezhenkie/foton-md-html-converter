@@ -17,3 +17,7 @@ foton-md-html-converter-x64
 docs/
 readme.html
 handoff-tmp.txt
+
+# SVG diagram scratch test folder and integration plan
+ascii-diagram-test/
+plan-svg-rendering-diagrams integration.md

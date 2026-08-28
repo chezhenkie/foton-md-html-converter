@@ -27,4 +27,6 @@ code{font-family:var(--font-mono);font-size:13px;background:var(--code-bg);color
 pre{background:var(--pre-bg);color:var(--pre-ink);padding:16px 20px;border-radius:4px;overflow-x:auto;margin:18px 0 24px;font-family:var(--font-mono);font-size:13px;line-height:1.6;transition:background .3s,color .3s}
 pre code{background:none;color:inherit;padding:0}
 .lede,em,.callout{font-family:var(--font-serif)!important}
+.svg-diagram{display:block;text-align:center;margin:24px 0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:4px;transition:background .3s,border-color .3s}
+.svg-diagram svg{max-width:100%;height:auto}
 @media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}}"#;
