@@ -1,25 +1,5 @@
 pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
   var NS='http://www.w3.org/2000/svg';
-  var MARKER_ID='dg-arrow';
-
-  function ensureMarker(svg){
-    if(svg.getElementById(MARKER_ID))return;
-    var defs=document.createElementNS(NS,'defs');
-    var marker=document.createElementNS(NS,'marker');
-    marker.setAttribute('id',MARKER_ID);
-    marker.setAttribute('viewBox','0 0 10 10');
-    marker.setAttribute('refX','9');
-    marker.setAttribute('refY','5');
-    marker.setAttribute('markerWidth','6');
-    marker.setAttribute('markerHeight','6');
-    marker.setAttribute('orient','auto-start-reverse');
-    var path=document.createElementNS(NS,'path');
-    path.setAttribute('d','M 0 0 L 10 5 L 0 10 z');
-    path.setAttribute('fill','var(--accent)');
-    marker.appendChild(path);
-    defs.appendChild(marker);
-    svg.appendChild(defs);
-  }
 
   function center(graph,el){
     var a=el.getBoundingClientRect();
@@ -48,7 +28,7 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
     var up=edge.loop||T.y+S.h<S.y;
 
     var p0,p3,c1,c2;
-    if(Math.abs(dy)<40){
+    if(edge.h){
       var dir=dx>=0?1:-1;
       p0={x:S.x+dir*S.w/2,y:S.y};
       p3={x:T.x-dir*T.w/2,y:T.y};
@@ -62,6 +42,13 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
       var bulge=90;
       c1={x:p0.x-bulge,y:p0.y-30};
       c2={x:p3.x-bulge,y:p3.y+30};
+    }else if(edge.d&&Math.abs(dx)>=Math.abs(dy)){
+      var ddir=dx>=0?1:-1;
+      p0={x:S.x+ddir*S.w/2,y:S.y};
+      p3={x:T.x-ddir*T.w/2,y:T.y};
+      var mx=(p0.x+p3.x)/2;
+      c1={x:mx,y:p0.y};
+      c2={x:mx,y:p3.y};
     }else{
       p0={x:S.x,y:S.y+S.h/2};
       p3={x:T.x,y:T.y-S.h/2};
@@ -78,9 +65,6 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
     var d='M '+p0.x+' '+p0.y+' C '+c1.x+' '+c1.y+' '+c2.x+' '+c2.y+' '+p3.x+' '+p3.y;
     path.setAttribute('d',d);
     path.setAttribute('class','diagram-edge'+(edge.loop?' loop':''));
-    if(edge.arrow){
-      path.setAttribute('marker-end','url(#'+MARKER_ID+')');
-    }
     g.appendChild(path);
     svg.appendChild(g);
   }
@@ -91,8 +75,6 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
     var svg=graph.querySelector('.diagram-edges');
     var layers=graph.querySelector('.diagram-layers');
     if(!svg||!layers)return;
-
-    ensureMarker(svg);
 
     while(svg.firstChild)svg.removeChild(svg.firstChild);
 
@@ -110,6 +92,35 @@ pub const DIAGRAMS_JS: &str = r#"const Diagrams=(function(){
       var t=nodeMap[e.t];
       if(s&&t)drawEdge(graph,svg,e,s,t);
     }
+
+    function setLit(id){
+      var gs=svg.querySelectorAll('g');
+      for(var j=0;j<gs.length;j++){
+        var on=gs[j].getAttribute('data-from')===id;
+        var p=gs[j].querySelector('path');
+        if(!p)continue;
+        p.classList.toggle('lit',on);
+        p.classList.toggle('dim',!on);
+      }
+    }
+    function clearLit(){
+      var ps=svg.querySelectorAll('path');
+      for(var j=0;j<ps.length;j++)ps[j].classList.remove('lit','dim');
+    }
+    var pinned=null;
+    for(var key in nodeMap){
+      (function(k){
+        nodeMap[k].addEventListener('mouseenter',function(){setLit(k);});
+        nodeMap[k].addEventListener('mouseleave',function(){if(pinned)setLit(pinned);else clearLit();});
+        nodeMap[k].addEventListener('click',function(){
+          pinned=(pinned===k)?null:k;
+          if(pinned)setLit(pinned);else clearLit();
+        });
+      })(key);
+    }
+    graph.addEventListener('click',function(ev){
+      if(!ev.target.closest||!ev.target.closest('.diagram-node')){pinned=null;clearLit();}
+    });
   }
 
   function initAll(){

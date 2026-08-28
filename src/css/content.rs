@@ -37,4 +37,7 @@ pre code{background:none;color:inherit;padding:0}
 .diagram-node:hover{box-shadow:0 3px 10px var(--shadow-hover);transform:translateY(-1px)}
 .diagram-edge{fill:none;stroke:var(--edge, var(--line));stroke-width:2.8;transition:stroke .35s ease}
 .diagram-edge.loop{stroke-dasharray:5 4}
+.diagram-edge.lit{stroke:var(--accent);stroke-width:2.7;stroke-dasharray:8 5;animation:dg-dash .9s linear infinite}
+.diagram-edge.dim{opacity:.25}
+@keyframes dg-dash{to{stroke-dashoffset:-26}}
 @media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}.diagram-node{width:120px;min-height:54px;padding:10px;font-size:12px}.diagram-row{gap:24px}}"#;

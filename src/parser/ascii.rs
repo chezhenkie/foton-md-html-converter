@@ -41,6 +41,7 @@ struct Connector {
     r1: usize,
     c1: usize,
     arrow: bool,
+    rev: bool,
 }
 
 // ---------------------------------------------------------------------------
@@ -60,7 +61,7 @@ fn normalize(input: &str) -> Vec<Vec<char>> {
     for row in grid.iter_mut() {
         for ch in row.iter_mut() {
             *ch = match *ch {
-                '─' | '━' | '−' => '-',
+                '─' | '━' | '−' | '═' => '-',
                 '│' | '┃' => '|',
                 '┌' | '┐' | '└' | '┘' | '├' | '┤' | '┬' | '┴' | '┼' | '╞' | '╡' | '╥' | '╨'
                 | '╫' | '+' => '+',
@@ -72,11 +73,48 @@ fn normalize(input: &str) -> Vec<Vec<char>> {
             };
         }
     }
+    // '=' becomes a horizontal stroke only when it (transitively) touches a
+    // real stroke or arrowhead, so text like "v=2" keeps its label intact.
+    loop {
+        let mut changed = false;
+        let w = if grid.is_empty() { 0 } else { grid[0].len() };
+        for r in 0..grid.len() {
+            for c in 0..w {
+                if grid[r][c] != '=' {
+                    continue;
+                }
+                let touch = (c > 0 && matches!(grid[r][c - 1], '-' | '>' | '<'))
+                    || (c + 1 < w && matches!(grid[r][c + 1], '-' | '>' | '<'));
+                if touch {
+                    grid[r][c] = '-';
+                    changed = true;
+                }
+            }
+        }
+        if !changed {
+            break;
+        }
+    }
     grid
 }
 
-fn is_connector(ch: char) -> bool {
-    matches!(ch, '-' | '|' | '+' | '/' | '\\' | '>' | '<' | '^' | 'v')
+// Position-aware connector test: arrow glyphs only count as connectors when
+// they touch a stroke in their pointing axis. This keeps words like "Bravo"
+// (contains 'v') or "max>min" labels from being split mid-word.
+fn is_connector_at(grid: &[Vec<char>], r: usize, c: usize) -> bool {
+    let rows = grid.len();
+    let cols = if rows == 0 { 0 } else { grid[0].len() };
+    if r >= rows || c >= cols {
+        return false;
+    }
+    match grid[r][c] {
+        '-' | '|' | '+' | '/' | '\\' => true,
+        '>' => c > 0 && grid[r][c - 1] == '-',
+        '<' => c + 1 < cols && grid[r][c + 1] == '-',
+        'v' => r > 0 && grid[r - 1][c] == '|',
+        '^' => r + 1 < rows && grid[r + 1][c] == '|',
+        _ => false,
+    }
 }
 
 fn find_labels(grid: &[Vec<char>]) -> Vec<Label> {
@@ -95,15 +133,14 @@ fn find_labels(grid: &[Vec<char>]) -> Vec<Label> {
                 continue;
             }
             let ch = grid[r][c];
-            if ch == ' ' || is_connector(ch) {
+            if ch == ' ' || is_connector_at(grid, r, c) {
                 c += 1;
                 continue;
             }
             let start = c;
             let mut end = c;
             while end < cols {
-                let g = grid[r][end];
-                if g == ' ' || is_connector(g) {
+                if grid[r][end] == ' ' || is_connector_at(grid, r, end) {
                     break;
                 }
                 end += 1;
@@ -146,13 +183,15 @@ fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
                 continue;
             }
             let ch = grid[r][c];
-            if ch == '-' || ch == '<' {
+            if ch == '-' || (ch == '<' && c + 1 < cols && grid[r][c + 1] == '-') {
                 let start = c;
                 let mut arrow = false;
+                let mut rev = false;
                 let mut c2 = c;
                 if ch == '<' {
                     c2 += 1;
                     arrow = true;
+                    rev = true;
                 }
                 while c2 < cols && grid[r][c2] == '-' {
                     c2 += 1;
@@ -173,6 +212,7 @@ fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
                         r1: r,
                         c1: end,
                         arrow,
+                        rev,
                     });
                 }
                 c = c2;
@@ -191,13 +231,15 @@ fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
                 continue;
             }
             let ch = grid[r][c];
-            if ch == '|' || ch == '^' {
+            if ch == '|' || (ch == '^' && r + 1 < rows && grid[r + 1][c] == '|') {
                 let start = r;
                 let mut arrow = false;
+                let mut rev = false;
                 let mut r2 = r;
                 if ch == '^' {
                     r2 += 1;
                     arrow = true;
+                    rev = true;
                 }
                 while r2 < rows && grid[r2][c] == '|' {
                     r2 += 1;
@@ -218,6 +260,7 @@ fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
                         r1: end,
                         c1: c,
                         arrow,
+                        rev,
                     });
                 }
                 r = r2;
@@ -283,6 +326,7 @@ fn find_connectors(grid: &[Vec<char>]) -> Vec<Connector> {
                     r1: cells.last().unwrap().0,
                     c1: cells.last().unwrap().1,
                     arrow: false,
+                    rev: false,
                 });
             }
         }
@@ -299,7 +343,7 @@ fn is_box_border(grid: &[Vec<char>], conn: &Connector) -> bool {
             return false;
         }
         let ch = grid[r][c];
-        ch != ' ' && !is_connector(ch)
+        ch != ' ' && !is_connector_at(grid, r, c)
     };
     match conn.dir {
         Dir::H => {
@@ -344,6 +388,15 @@ fn nearest_in_direction(labels: &[Label], x: f64, y: f64, dx: f64, dy: f64) -> O
 }
 
 fn connector_source_target(labels: &[Label], conn: &Connector) -> (Option<usize>, Option<usize>) {
+    let (from, to) = connector_endpoints(labels, conn);
+    if conn.rev {
+        (to, from)
+    } else {
+        (from, to)
+    }
+}
+
+fn connector_endpoints(labels: &[Label], conn: &Connector) -> (Option<usize>, Option<usize>) {
     match conn.dir {
         Dir::H => {
             let y = cell_cy(conn.r0);
@@ -413,6 +466,8 @@ pub struct LogicalEdge {
     pub target_id: String,
     pub arrow: bool,
     pub loopback: bool,
+    pub horiz: bool,
+    pub diag: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -485,15 +540,18 @@ fn build_logical_graph(
         targets.sort_by(|a, b| labels[*a].cx().partial_cmp(&labels[*b].cx()).unwrap());
         targets.dedup();
 
-        for (i, (_, _ci, arrow)) in order.iter().enumerate() {
-            let to = targets.get(i).copied().unwrap_or(order[i].0);
+        for (i, (target_hint, ci, arrow)) in order.iter().enumerate() {
+            let to = targets.get(i).copied().unwrap_or(*target_hint);
             let source_row = labels[from].r0;
             let target_row = labels[to].r0;
+            let dir = connectors[*ci].dir;
             edges.push(LogicalEdge {
                 source_id: format!("{}-n{}", diagram_id, from),
                 target_id: format!("{}-n{}", diagram_id, to),
                 arrow: *arrow,
                 loopback: source_row > target_row,
+                horiz: dir == Dir::H,
+                diag: matches!(dir, Dir::Dn | Dir::Up),
             });
         }
     }
@@ -570,11 +628,13 @@ fn render_html(graph: &LogicalGraph) -> String {
             edges_json.push(',');
         }
         edges_json.push_str(&format!(
-            "{{\"s\":\"{}\",\"t\":\"{}\",\"arrow\":{},\"loop\":{}}}",
+            "{{\"s\":\"{}\",\"t\":\"{}\",\"arrow\":{},\"loop\":{},\"h\":{},\"d\":{}}}",
             e.source_id,
             e.target_id,
             e.arrow,
-            e.loopback
+            e.loopback,
+            e.horiz,
+            e.diag
         ));
     }
     edges_json.push(']');
@@ -661,11 +721,74 @@ mod tests {
     }
 
     #[test]
+    fn leftward_arrow_reverses_endpoints() {
+        let grid = normalize(" A  <---  B ");
+        let labels = find_labels(&grid);
+        let connectors = find_connectors(&grid);
+        let g = build_logical_graph(&labels, &connectors, &grid, "t");
+        assert_eq!(g.edges.len(), 1);
+        let src = g.nodes.iter().find(|n| n.id == g.edges[0].source_id).unwrap();
+        let tgt = g.nodes.iter().find(|n| n.id == g.edges[0].target_id).unwrap();
+        assert_eq!(src.text, "B");
+        assert_eq!(tgt.text, "A");
+        assert!(g.edges[0].arrow);
+        assert!(g.edges[0].horiz);
+    }
+
+    #[test]
+    fn up_arrow_is_loopback_edge() {
+        let grid = normalize(" A \n ^ \n | \n B ");
+        let labels = find_labels(&grid);
+        let connectors = find_connectors(&grid);
+        let g = build_logical_graph(&labels, &connectors, &grid, "t");
+        assert_eq!(g.edges.len(), 1);
+        let up = &g.edges[0];
+        assert!(up.arrow);
+        assert_eq!(up.source_id, "t-n1");
+        assert_eq!(up.target_id, "t-n0");
+        assert!(up.loopback);
+    }
+
+    #[test]
+    fn equals_arrow_becomes_connector() {
+        let input = " A  ====>  B ";
+        let html = ascii_to_html(input);
+        assert_eq!(html.matches("\"arrow\":").count(), 1);
+        assert!(html.contains("\"h\":true"));
+    }
+
+    #[test]
+    fn equals_inside_label_stays_text() {
+        let input = " A  --->  v=2 ";
+        let html = ascii_to_html(input);
+        assert!(html.contains(">v=2</div>"));
+        assert_eq!(html.matches("\"arrow\":").count(), 1);
+    }
+
+    #[test]
     fn horizontal_chain() {
         let input = " A  --->  B ";
         let html = ascii_to_html(input);
         let edge_count = html.matches("\"arrow\":").count();
         assert_eq!(edge_count, 1);
+        assert!(html.contains("\"h\":true"));
+    }
+
+    #[test]
+    fn v_inside_word_is_not_a_connector() {
+        let input = " A  --->  Bravo ";
+        let html = ascii_to_html(input);
+        assert!(html.contains(">Bravo</div>"));
+        assert!(!html.contains(">Bra</div>"));
+        assert_eq!(html.matches("\"arrow\":").count(), 1);
+    }
+
+    #[test]
+    fn vertical_arrow_v_still_connects() {
+        let input = " A \n | \n v \n B ";
+        let html = ascii_to_html(input);
+        assert_eq!(html.matches("\"arrow\":").count(), 1);
+        assert!(html.contains("\"h\":false"));
     }
 
     #[test]
@@ -676,5 +799,6 @@ mod tests {
         assert_eq!(edge_count, 1);
         assert!(html.contains("A"));
         assert!(html.contains("B"));
+        assert!(html.contains("\"d\":true"));
     }
 }

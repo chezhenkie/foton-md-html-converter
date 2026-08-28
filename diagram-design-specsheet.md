@@ -1,4 +1,4 @@
-# Diagram Design Specsheet (v1.3.0 base)
+# Diagram Design Specsheet (v1.3.1 base)
 
 The complete design spec for the ASCII-diagram-to-HTML rendering pipeline used by
 `foton-md-html-converter`. This document covers the whole trajectory: the conceptual model,
@@ -27,7 +27,8 @@ In scope:
 - The three-layer pipeline (decode, logical rebuild, graphical render).
 - Node and edge appearance, sizes, colors, and spacing.
 - Theme integration (light/dark, three palettes, brightness/saturation).
-- Arrowheads, loops, fan-out/fan-in, and curve routing.
+- Arrow characters as input syntax; loops, fan-out/fan-in, and curve routing; direction shown by
+  hover/tap flow animation (no drawn arrowheads).
 - Runtime behaviour (resize, re-render, environment detection).
 - Responsive behaviour and accessibility.
 - The visual test suite and acceptance criteria.
@@ -50,6 +51,7 @@ rendering strategy, and each was a deliberate architectural choice.
 | v1.1.0 | commit d93a60d | Static SVG emission | SVG exactness is coordinate-fragile; hand-coded positions |
 | v1.2.0 | text-first parser rewrite | Logical decode separated from rendering | Labels first, connectors second, box borders filtered |
 | v1.3.0 | commit 6ef411c | DOM layout + runtime SVG edges | Browser positions nodes; JS draws edges from live geometry |
+| v1.3.1 | (this commit) | Arrowheads removed; hover/tap flow animation | Direction shown only by lit dash-march on node hover/tap; tap pins |
 
 ### 2.1 Why v1.3.0 is the current base
 
@@ -263,15 +265,15 @@ All edges are cubic bezier paths drawn at runtime between box centres.
   side bulge of 90px so the returning curve bulges left of the nodes instead of overlapping them.
   The bulge keeps ascending paths visually distinct from descending ones.
 
-### 6.4 Arrowheads
+### 6.4 Direction indication (no arrowheads)
 
-- A single shared marker `rg-arrow` defined once per SVG in `<defs>`.
-- Triangle path `M 0 0 L 10 5 L 0 10 z`, filled `var(--accent)`.
-- `marker-end` is applied only when the logical edge has `arrow = true`.
-- `orient="auto-start-reverse"` so the arrow aligns to the path direction.
+There are no arrowhead markers. Static edges carry no direction cue: every path is a plain
+stroke, directed or not. Direction is revealed only by the hover/tap flow animation (section 6.6),
+whose dash march runs along the path from source point `p0` to target point `p3`.
 
-Rule: arrowheads inherit the accent colour, not the edge colour. This makes directed edges read
-as "accent terminates a route", and undirected edges stay neutral grey.
+Rule: the logical source/target of a reversed connector (`<---`, `^`) is swapped in the parser
+(`connector_source_target`), so the path itself always starts at the true source. The renderer
+never needs to know which arrowhead character produced the edge.
 
 ### 6.5 Loopback rendering
 
@@ -284,6 +286,28 @@ dashed stroke:
 
 A loopback is any edge whose source node row is strictly above its target node row in grid order
 (upward edge). Dashes distinguish "return route" from "forward route".
+
+### 6.6 Hover/tap flow animation
+
+All edges are static by default (solid or loop-dashed, no motion). Interaction follows the
+darkV7 mockup: hovering (or tapping) a node animates that node's OUTGOING edges and dims the rest.
+
+| Selector | Meaning |
+|---|---|
+| `.diagram-edge.lit` | outgoing edge of the active node: `stroke: var(--accent)`, `stroke-width: 2.7`, `stroke-dasharray: 8 5`, `animation: dg-dash .9s linear infinite` |
+| `@keyframes dg-dash` | `to { stroke-dashoffset: -26 }` (one full 13px pattern cycle, marching source to target) |
+| `.diagram-edge.dim` | every other edge during activation: `opacity: .25` |
+
+Trigger contract (in `renderDiagram`):
+
+1. Each edge group carries `data-from` / `data-to` node ids.
+2. `mouseenter` on a node: add `lit` to paths whose group has `data-from` equal to the node id,
+   `dim` to all others. `mouseleave`: restore the pinned node's state, or clear all when nothing
+   is pinned.
+3. `click` on a node toggles a pinned id (same behaviour via touch tap on mobile, where hover
+   does not exist). A click on the graph background unpins and clears.
+4. No `prefers-reduced-motion` guard: on Windows desktops with system animations disabled the
+   guard silently killed the whole feature. The animation is unconditional by decision.
 
 ---
 
@@ -306,8 +330,11 @@ Each node has:
 Each edge has:
 
 - `s` / `t`: source and target node ids.
-- `arrow`: whether to draw an arrowhead.
+- `arrow`: whether the edge is directed (it then participates in hover/tap flow animation; no
+  arrowhead is drawn).
 - `loop`: whether to render as an upward dashed loopback.
+- `h` / `d`: whether the source connector was flat-horizontal / diagonal (geometry hints used by
+  `drawEdge` to choose routing instead of guessing from pixel deltas).
 
 ### 7.3 Direction rules (built into `connector_source_target`)
 
@@ -350,10 +377,11 @@ Source: `src/js/diagrams.rs`.
 
 1. Find the `.diagram-graph` element by `data.id`.
 2. Locate the `<svg class="diagram-edges">` and the `.diagram-layers` container.
-3. Ensure the shared arrow marker exists.
-4. Clear previous SVG content (so re-render does not stack duplicate paths).
-5. Build a node map from `.diagram-node[data-dg-node]`.
-6. For each edge, run `drawEdge` to compute centres and append a `<g>` with one `<path>`.
+3. Clear previous SVG content (so re-render does not stack duplicate paths).
+4. Build a node map from `.diagram-node[data-dg-node]`.
+5. For each edge, run `drawEdge` to compute centres and append a `<g>` with one `<path>`.
+6. Bind `mouseenter` / `mouseleave` / `click` on every node and a background-click clear on the
+   graph, implementing the lit/dim/pin contract of section 6.6.
 
 ### 8.3 Coordinate source
 
@@ -455,7 +483,7 @@ structure fan-out/fan-in semantics intact.
 | .diagram-node font-size | 14px | 12px |
 | .diagram-row gap | 46px | 24px |
 
-The enhanced resize handler recomputes edge geometry after the reflow, so arrows stay attached at
+The enhanced resize handler recomputes edge geometry after the reflow, so edges stay attached at
 mobile sizes. The graph container clips horizontally (overflow-x auto) if a diagram is wider than
 the viewport.
 
@@ -514,8 +542,8 @@ approval. Items build on the v1.3.0 base already committed in 6ef411c.
 
 - Increase horizontal separation between parallel outgoing edges from a common source.
 - Standardize a minimum vertical padding between node bottom and its outgoing curve.
-- Add a small margin between arrowhead tip and target node top so the arrow reads as "arriving
-  at" rather than "cutting into" the box.
+- Keep the incoming curve endpoint just at the target node border so the lit dash march reads as
+  "arriving at" the box.
 
 ### 12.2 Edge-style differentiation (low risk)
 
@@ -523,10 +551,14 @@ approval. Items build on the v1.3.0 base already committed in 6ef411c.
   user choose dash, weight, or colour per edge via a future ASCII marker.
 - Keep the light-grey/visible-colour rule from 6.2 as the baseline; modifiers only layer on top.
 
-### 12.3 Arrow placement refinement (medium risk)
+### 12.3 Direction cue refinement (superseded arrowheads)
 
-- Clip arrowheads to the node bounding box so tips never overlap the border.
-- Support `orient` flipping for leftward and upward edges (marker already has auto-start-reverse).
+Arrowheads were removed in v1.3.1; direction now reads from the hover/tap dash march (section 6.6).
+Remaining polish ideas, all low priority:
+
+- A persistent (non-hover) subtle flow option for exported/static builds, if ever requested.
+- Shorten the lit dash cycle so very long edges animate at a readable per-second rate rather than
+  a fixed .9s, if short hops make the march read as too fast.
 
 ### 12.4 Node type styling (medium risk)
 
@@ -568,7 +600,7 @@ Required variables (both must exist in every palette/mode for the diagram to ren
 |---|---|
 | `--card` | graph canvas + border backing |
 | `--line` | node borders and graph frame |
-| `--accent` | node top strip + arrowheads |
+| `--accent` | node top strip + lit edge flow colour |
 | `--espresso` | node text |
 | `--node-bg` | node interior surface (differ from `--card`, esp. dark) |
 | `--edge` | connecting-line stroke (visible step above `--card`, esp. dark) |
@@ -595,21 +627,22 @@ handling is needed beyond declaring the variables.
 | horizontal_chain | exactly 1 edge |
 | diagonal_pair | exactly 1 edge; A and B present |
 
-The suite currently passes 37 tests (both parser modules). Any roadmap change that alters node or
+The suite currently passes 43 tests (both parser modules). Any roadmap change that alters node or
 edge counts must update these assertions in the same change.
 
 ### 14.2 Visual test programme (`diagram-visual-tests/`)
 
-Six committed source/HTML pairs cover the routing space:
+Seven git-ignored source/HTML pairs cover the routing space:
 
 | File | Covers |
 |---|---|
-| 01-hub-fan-out | one source, multiple distinct targets |
-| 02-horizontal-arrow | single horizontal directed edge |
-| 03-vertical-chain | vertical chain with arrow |
-| 04-diagonal-pair | diagonal pair |
-| 05-left-right-diagonal | bidirectional fan-in to a sink |
-| 06-mixed-flow | mixed vertical + horizontal flow |
+| 01-flat-right | single horizontal directed edge, flow left to right |
+| 02-flat-left | reversed horizontal connector, flow right to left |
+| 03-flat-chain | same-row chain of directed edges |
+| 04-flat-fanout | one source, multiple distinct targets |
+| 05-flat-tall-short | unequal node heights, flat horizontal routing |
+| 06-flat-diagonal-mixed | horizontal + diagonal edges mixed |
+| 07-branch-loopback | branch fan-out plus an upward dashed loopback |
 
 Regeneration: run the Windows release exe against the folder after any source change, then
 visually confirm in both light and dark mode and in all three palettes. The 620px viewport must
@@ -620,11 +653,13 @@ also be checked.
 1. Every node encloses its label with the accent top strip visible.
 2. Every recognised connector renders as a visible edge (>= 2.8 stroke) that does not disappear
    against the card in dark mode.
-3. Arrowheads sit at the destination edge, coloured `--accent`.
+3. Static edges carry no arrowheads; direction is only shown by the hover/tap flow animation.
 4. Fan-out reaches all distinct targets; no two edges collapse onto one target.
-5. Geometry survives window resize and font-toggle without detached arrows.
+5. Geometry survives window resize and font-toggle without detached edges.
 6. In light mode edges read lighter than ink; in dark mode edges read clearly above the card.
 7. Nodes read as distinct surfaces from the graph card in both modes.
+8. Hovering or tapping a node lights its outgoing edges (accent, dash march) and dims the rest;
+   leaving clears, and tap-pin persists until an unpinned click on the background.
 
 ---
 
@@ -650,8 +685,9 @@ rendering but are not listed for verbatim porting.
 | v1.1.0 | d93a60d | Static SVG emission |
 | v1.2.0 | (pre-6ef411c) | text-first parser rewrite; logical decode separated |
 | v1.3.0 | 6ef411c | DOM layout + runtime SVG edges; --edge and --node-bg added; edge weight 2.8; lighter light edges; visual test folder updated |
+| v1.3.1 | (this commit) | Arrowhead markers removed; direction via hover/tap dash-march flow (section 6.6) with lit/dim/pin; h/d geometry hints on edges; reversed connectors swap source/target; context-aware connector splitting and = normalization in parser; 43 tests; 7 visual test files |
 
-This document is written against the v1.3.0 base. Future versions append a row above and update
+This document is written against the v1.3.1 base. Future versions append a row above and update
 the sections they touch; they do not rewrite history.
 
 ---
