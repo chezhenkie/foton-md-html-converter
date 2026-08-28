@@ -25,7 +25,7 @@ This document traces how a source `.md` or `.txt` file becomes a self-contained 
 - **Headings** (`#` to `######`) are matched with a regex. `h2` gets an auto-incremented section number and a decorative rule; `h3` and other levels are plain.
 - **Paragraphs** are any non-empty, non-special line; their content is passed through the inline parser.
 - **Fenced code blocks** start and end with `` ``` ``. A language tag becomes `class="language-<lang>"`. Content is HTML-escaped.
-- **SVG fences** are code blocks whose language is exactly `svg`. If the raw content begins with `<svg`, it is pasted verbatim; otherwise it is handed to `parser::ascii::ascii_to_svg` and wrapped in `<div class="svg-diagram">`.
+- **SVG fences** are code blocks whose language is exactly `svg`. If the raw content begins with `<svg`, it is pasted verbatim; otherwise it is handed to `parser::ascii::ascii_to_html` and wrapped in `<div class="svg-diagram">`.
 - **Tables** are detected when a trimmed line starts with `|`. The first such line becomes the header row; a separator row of dashes/colons is consumed and discarded; subsequent rows become body rows. All cell content is inline-parsed.
 - **Blockquotes** (`> ...`) become `<div class="callout"><p>...</p></div>`.
 - **Unordered lists** start with `- ` or `* `; ordered lists start with `digits. `. Switching between the two closes the previous list and opens a new one.

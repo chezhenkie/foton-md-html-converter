@@ -129,7 +129,7 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 | `src/html/builder.rs` | Module 4 (build_page) | Page assembly |
 | `src/parser/markdown.rs` | Module 3 (md_to_html) | Markdown parser |
 | `src/parser/inline.rs` | Module 3 (inline, escape_html) | Inline formatting |
-| `src/parser/ascii.rs` | Module 3 (ascii_to_svg) | ASCII diagram to SVG conversion |
+| `src/parser/ascii.rs` | Module 3 (ascii_to_html) | ASCII diagram to HTML/DOM rendering |
 | `src/io/files.rs` | Module 3 (TITLE_MAP, collect_source_files) | File discovery |
 | `src/io/convert.rs` | Module 3 (convert_file) | Conversion loop |
 | `src/main.rs` | Module 3 (main) | CLI entry point |
