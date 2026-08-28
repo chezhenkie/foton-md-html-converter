@@ -51,7 +51,7 @@ rendering strategy, and each was a deliberate architectural choice.
 | v1.1.0 | commit d93a60d | Static SVG emission | SVG exactness is coordinate-fragile; hand-coded positions |
 | v1.2.0 | text-first parser rewrite | Logical decode separated from rendering | Labels first, connectors second, box borders filtered |
 | v1.3.0 | commit 6ef411c | DOM layout + runtime SVG edges | Browser positions nodes; JS draws edges from live geometry |
-| v1.3.1 | (this commit) | Arrowheads removed; hover/tap flow animation | Direction shown only by lit dash-march on node hover/tap; tap pins |
+| v1.3.1 | commit 85819b8 | Arrowheads removed; hover/tap flow animation | Direction shown only by lit dash-march on node hover/tap; tap pins |
 
 ### 2.1 Why v1.3.0 is the current base
 
