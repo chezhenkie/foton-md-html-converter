@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>demo-3diagrams</title>
+<title>tstpage-box-detection</title>
 <style>
 #tb{
   position:fixed;top:0;left:0;right:0;height:24px;z-index:10;
@@ -251,54 +251,300 @@ pre code{background:none;color:inherit;padding:0}
 </div>
 <div class="wrap">
   <header>
-    <h1>demo-3diagrams</h1>  </header>
+    <h1>tstpage-box-detection</h1>  </header>
   <main>
-<h1>Three Complex Diagrams Demo</h1>
-<h2><span class="num">1</span>Diagram 1: Microservices Architecture</h2>
+<h1>Box Detection Edge Case Stress Test</h1>
+<p>Nine box-detection cases plus six malformed/sloppy box cases (Part 2), crafted</p>
+<p>to stress the box-detection logic in the v1.3.1 diagram</p>
+<p>parser. A connector whose run has text immediately adjacent is treated as a</p>
+<p>box frame line and dropped, not rendered as an edge. These cases probe frame</p>
+<p>consumption, shared borders, empty boxes, malformed frames, border-touching</p>
+<p>labels and the border-vs-edge boundary. Hover or tap a node to see outgoing</p>
+<p>edges light up.</p>
+<h2><span class="num">1</span>Case 01 - Tall multi-line box</h2>
 <div class="rule"></div>
+<p>A single box spanning several rows. The vertical borders must be consumed as</p>
+<p>frame. Note the documented multi-word split: every space is a word boundary,</p>
+<p>so each interior word becomes its own node.</p>
 <div class="svg-diagram">
   <div class="diagram-graph" id="dg-0">
     <svg class="diagram-edges" width="100%" height="100%"></svg>
-    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n0">Gateway</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n1">v</div><div class="diagram-node" data-dg-node="dg-0-n2">v</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n3">Auth</div><div class="diagram-node" data-dg-node="dg-0-n4">Users</div><div class="diagram-node" data-dg-node="dg-0-n5">Orders</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n6">Cache</div><div class="diagram-node" data-dg-node="dg-0-n7">DB</div><div class="diagram-node" data-dg-node="dg-0-n8">Queue</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n9">v</div><div class="diagram-node" data-dg-node="dg-0-n10">v</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n11">Merge</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n12">Logger</div></div></div>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n0">Alpha</div><div class="diagram-node" data-dg-node="dg-0-n1">service</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n2">Beta</div><div class="diagram-node" data-dg-node="dg-0-n3">service</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-0-n4">Gamma</div><div class="diagram-node" data-dg-node="dg-0-n5">service</div></div></div>
   </div>
 </div>
 <script>
 (function(){
-  var data = {"id":"dg-0","nodes":[{"id":"dg-0-n0","row":1,"x":0,"text":"Gateway"},{"id":"dg-0-n1","row":5,"x":0,"text":"v"},{"id":"dg-0-n2","row":5,"x":1,"text":"v"},{"id":"dg-0-n3","row":6,"x":0,"text":"Auth"},{"id":"dg-0-n4","row":6,"x":1,"text":"Users"},{"id":"dg-0-n5","row":6,"x":2,"text":"Orders"},{"id":"dg-0-n6","row":9,"x":0,"text":"Cache"},{"id":"dg-0-n7","row":9,"x":1,"text":"DB"},{"id":"dg-0-n8","row":9,"x":2,"text":"Queue"},{"id":"dg-0-n9","row":12,"x":0,"text":"v"},{"id":"dg-0-n10","row":12,"x":1,"text":"v"},{"id":"dg-0-n11","row":14,"x":0,"text":"Merge"},{"id":"dg-0-n12","row":18,"x":0,"text":"Logger"}],"edges":[{"s":"dg-0-n6","t":"dg-0-n9","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-0-n8","t":"dg-0-n10","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-0-n3","t":"dg-0-n6","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-0-n11","t":"dg-0-n12","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-0-n9","t":"dg-0-n12","arrow":false,"loop":false,"h":false,"d":false},{"s":"dg-0-n7","t":"dg-0-n11","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-0-n5","t":"dg-0-n8","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-0-n0","t":"dg-0-n1","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-0-n0","t":"dg-0-n4","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-0-n0","t":"dg-0-n2","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-0-n4","t":"dg-0-n7","arrow":true,"loop":false,"h":false,"d":false}]};
+  var data = {"id":"dg-0","nodes":[{"id":"dg-0-n0","row":1,"x":0,"text":"Alpha"},{"id":"dg-0-n1","row":1,"x":1,"text":"service"},{"id":"dg-0-n2","row":2,"x":0,"text":"Beta"},{"id":"dg-0-n3","row":2,"x":1,"text":"service"},{"id":"dg-0-n4","row":3,"x":0,"text":"Gamma"},{"id":"dg-0-n5","row":3,"x":1,"text":"service"}],"edges":[]};
   window.__diagramQueue = window.__diagramQueue || [];
   window.__diagramQueue.push(data);
 })();
 </script>
-<h2><span class="num">2</span>Diagram 2: CI/CD Pipeline with Branching</h2>
+<p>Expected: 6 nodes (Alpha/service, Beta/service, Gamma/service), 0 edges.</p>
+<h2><span class="num">2</span>Case 02 - Two adjoining boxes sharing a vertical border</h2>
 <div class="rule"></div>
+<p>A single <code>|</code> column is simultaneously the right border of the left box and</p>
+<p>the left border of the right box. It must be consumed as frame on both sides,</p>
+<p>leaving both interior labels as nodes and no horizontal edge between them.</p>
 <div class="svg-diagram">
   <div class="diagram-graph" id="dg-1">
     <svg class="diagram-edges" width="100%" height="100%"></svg>
-    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n0">Source</div><div class="diagram-node" data-dg-node="dg-1-n1">Build</div><div class="diagram-node" data-dg-node="dg-1-n2">Test</div><div class="diagram-node" data-dg-node="dg-1-n3">Stage</div><div class="diagram-node" data-dg-node="dg-1-n4">Deploy</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n5">v</div><div class="diagram-node" data-dg-node="dg-1-n6">v</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n7">Lint</div><div class="diagram-node" data-dg-node="dg-1-n8">Unit</div><div class="diagram-node" data-dg-node="dg-1-n9">(fail</div><div class="diagram-node" data-dg-node="dg-1-n10">loop)</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n11">v</div><div class="diagram-node" data-dg-node="dg-1-n12">v</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n13">Report</div></div></div>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-1-n0">Lefty</div><div class="diagram-node" data-dg-node="dg-1-n1">Righty</div></div></div>
   </div>
 </div>
 <script>
 (function(){
-  var data = {"id":"dg-1","nodes":[{"id":"dg-1-n0","row":0,"x":0,"text":"Source"},{"id":"dg-1-n1","row":0,"x":1,"text":"Build"},{"id":"dg-1-n2","row":0,"x":2,"text":"Test"},{"id":"dg-1-n3","row":0,"x":3,"text":"Stage"},{"id":"dg-1-n4","row":0,"x":4,"text":"Deploy"},{"id":"dg-1-n5","row":2,"x":0,"text":"v"},{"id":"dg-1-n6","row":2,"x":1,"text":"v"},{"id":"dg-1-n7","row":3,"x":0,"text":"Lint"},{"id":"dg-1-n8","row":3,"x":1,"text":"Unit"},{"id":"dg-1-n9","row":3,"x":2,"text":"(fail"},{"id":"dg-1-n10","row":3,"x":3,"text":"loop)"},{"id":"dg-1-n11","row":5,"x":0,"text":"v"},{"id":"dg-1-n12","row":5,"x":1,"text":"v"},{"id":"dg-1-n13","row":6,"x":0,"text":"Report"}],"edges":[{"s":"dg-1-n9","t":"dg-1-n4","arrow":true,"loop":true,"h":false,"d":false},{"s":"dg-1-n0","t":"dg-1-n1","arrow":true,"loop":false,"h":true,"d":false},{"s":"dg-1-n7","t":"dg-1-n11","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-1-n1","t":"dg-1-n2","arrow":true,"loop":false,"h":true,"d":false},{"s":"dg-1-n8","t":"dg-1-n12","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-1-n3","t":"dg-1-n4","arrow":true,"loop":false,"h":true,"d":false},{"s":"dg-1-n2","t":"dg-1-n5","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-1-n2","t":"dg-1-n6","arrow":false,"loop":false,"h":false,"d":true},{"s":"dg-1-n2","t":"dg-1-n3","arrow":true,"loop":false,"h":true,"d":false}]};
+  var data = {"id":"dg-1","nodes":[{"id":"dg-1-n0","row":1,"x":0,"text":"Lefty"},{"id":"dg-1-n1","row":1,"x":1,"text":"Righty"}],"edges":[]};
   window.__diagramQueue = window.__diagramQueue || [];
   window.__diagramQueue.push(data);
 })();
 </script>
-<h2><span class="num">3</span>Diagram 3: State Machine</h2>
+<p>Expected: 2 nodes (Lefty, Righty), 0 edges.</p>
+<h2><span class="num">3</span>Case 03 - Empty box (no interior label)</h2>
 <div class="rule"></div>
+<p>A fully drawn frame with no text inside. It should produce no node and no</p>
+<p>edges; every border cell is dropped as frame.</p>
 <div class="svg-diagram">
   <div class="diagram-graph" id="dg-2">
     <svg class="diagram-edges" width="100%" height="100%"></svg>
-    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-2-n0">Idle</div><div class="diagram-node" data-dg-node="dg-2-n1">Pending</div><div class="diagram-node" data-dg-node="dg-2-n2">Active</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-2-n3">Cancelled</div><div class="diagram-node" data-dg-node="dg-2-n4">Error</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-2-n5">(retry)</div></div></div>
+    <div class="diagram-layers"></div>
   </div>
 </div>
 <script>
 (function(){
-  var data = {"id":"dg-2","nodes":[{"id":"dg-2-n0","row":1,"x":0,"text":"Idle"},{"id":"dg-2-n1","row":1,"x":1,"text":"Pending"},{"id":"dg-2-n2","row":1,"x":2,"text":"Active"},{"id":"dg-2-n3","row":6,"x":0,"text":"Cancelled"},{"id":"dg-2-n4","row":6,"x":1,"text":"Error"},{"id":"dg-2-n5","row":9,"x":0,"text":"(retry)"}],"edges":[{"s":"dg-2-n3","t":"dg-2-n0","arrow":true,"loop":true,"h":false,"d":false},{"s":"dg-2-n0","t":"dg-2-n5","arrow":false,"loop":false,"h":true,"d":false},{"s":"dg-2-n0","t":"dg-2-n3","arrow":false,"loop":false,"h":true,"d":false},{"s":"dg-2-n0","t":"dg-2-n1","arrow":true,"loop":false,"h":true,"d":false},{"s":"dg-2-n2","t":"dg-2-n5","arrow":false,"loop":false,"h":false,"d":false},{"s":"dg-2-n2","t":"dg-2-n4","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-2-n2","t":"dg-2-n5","arrow":false,"loop":false,"h":false,"d":false},{"s":"dg-2-n1","t":"dg-2-n5","arrow":true,"loop":false,"h":false,"d":false},{"s":"dg-2-n1","t":"dg-2-n3","arrow":false,"loop":false,"h":false,"d":false},{"s":"dg-2-n1","t":"dg-2-n2","arrow":true,"loop":false,"h":true,"d":false},{"s":"dg-2-n4","t":"dg-2-n5","arrow":false,"loop":false,"h":false,"d":false},{"s":"dg-2-n5","t":"dg-2-n0","arrow":true,"loop":true,"h":false,"d":false},{"s":"dg-2-n5","t":"dg-2-n4","arrow":false,"loop":true,"h":true,"d":false}]};
+  var data = {"id":"dg-2","nodes":[],"edges":[]};
   window.__diagramQueue = window.__diagramQueue || [];
   window.__diagramQueue.push(data);
 })();
 </script>
+<p>Expected: 0 nodes, 0 edges.</p>
+<h2><span class="num">4</span>Case 04 - Box with a single-character interior</h2>
+<div class="rule"></div>
+<p>A one-character interior label centered in a spacious frame. The label must</p>
+<p>survive as a node and all four borders be dropped.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-3">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-3-n0">X</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-3","nodes":[{"id":"dg-3-n0","row":1,"x":0,"text":"X"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 1 node (X), 0 edges.</p>
+<h2><span class="num">5</span>Case 05 - Real horizontal edge spanning between two boxes</h2>
+<div class="rule"></div>
+<p>Two separate boxes joined by a single horizontal stroke on its own row. The</p>
+<p>stroke touches no cell that would mark it as frame, so it must survive as a</p>
+<p>flat horizontal edge One -&gt; Two between facing sides.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-4">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-4-n0">One</div><div class="diagram-node" data-dg-node="dg-4-n1">Two</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-4","nodes":[{"id":"dg-4-n0","row":1,"x":0,"text":"One"},{"id":"dg-4-n1","row":1,"x":1,"text":"Two"}],"edges":[{"s":"dg-4-n0","t":"dg-4-n1","arrow":false,"loop":false,"h":true,"d":false}]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 2 nodes (One, Two), 1 flat horizontal edge.</p>
+<h2><span class="num">6</span>Case 06 - Broken box frame (missing a corner)</h2>
+<div class="rule"></div>
+<p>A frame with one missing corner cell. The adjacency-based border filter has</p>
+<p>only partial contact to go on; it must still swallow the borders and leak no</p>
+<p>stray edge while keeping the interior labels.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-5">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-5-n0">Left</div><div class="diagram-node" data-dg-node="dg-5-n1">Right</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-5","nodes":[{"id":"dg-5-n0","row":1,"x":0,"text":"Left"},{"id":"dg-5-n1","row":1,"x":1,"text":"Right"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 2 nodes (Left, Right), 0 edges.</p>
+<h2><span class="num">7</span>Case 07 - Box edge flush against a label (no gap)</h2>
+<div class="rule"></div>
+<p>The vertical border runs immediately against the first character of each</p>
+<p>interior one-letter label with no separating space. Each letter must be</p>
+<p>detected as its own node and the borders must not merge into the words.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-6">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-6-n0">A</div><div class="diagram-node" data-dg-node="dg-6-n1">B</div><div class="diagram-node" data-dg-node="dg-6-n2">C</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-6","nodes":[{"id":"dg-6-n0","row":1,"x":0,"text":"A"},{"id":"dg-6-n1","row":1,"x":1,"text":"B"},{"id":"dg-6-n2","row":1,"x":2,"text":"C"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 3 nodes (A, B, C), 0 edges.</p>
+<h2><span class="num">8</span>Case 08 - Dangling vertical stroke (frame vs edge ambiguity)</h2>
+<div class="rule"></div>
+<p>A lone vertical stroke whose top touches text but whose bottom ends in open</p>
+<p>space. Because it has an adjacent label cell on one side, it is classified as</p>
+<p>frame and dropped silently rather than becoming a dangling edge.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-7">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-7-n0">A</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-7","nodes":[{"id":"dg-7-n0","row":0,"x":0,"text":"A"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 1 node (A), 0 edges.</p>
+<h2><span class="num">9</span>Case 09 - Outgoing edge passing through a box frame</h2>
+<div class="rule"></div>
+<p>A source box with interior text whose bottom border is pierced by a real</p>
+<p>vertical connector running down into a second box. The interior borders must</p>
+<p>be dropped as frame while the vertical arrow survives as a real directed edge</p>
+<p>Start -&gt; End. This is the key border-vs-edge boundary.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-8">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-8-n0">Start</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-8-n1">End</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-8","nodes":[{"id":"dg-8-n0","row":1,"x":0,"text":"Start"},{"id":"dg-8-n1","row":6,"x":0,"text":"End"}],"edges":[{"s":"dg-8-n0","t":"dg-8-n1","arrow":true,"loop":false,"h":false,"d":false}]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Expected: 2 nodes (Start, End), 1 directed vertical edge.</p>
+<h2><span class="num">10</span>Part 2 - Malformed and sloppy ASCII boxes</h2>
+<div class="rule"></div>
+<p>Hand-drawn boxes whose frames are ragged, unclosed, doubled or overlapping.</p>
+<p>These stress the adjacency-based border filter beyond well-formed frames.</p>
+<p>Each case notes the diagnostics collected on v1.3.1.</p>
+<h3>Sloppy A - Misaligned bottom border</h3>
+<p>The bottom border is a corner not centred on the box, and a vertical arrow</p>
+<p>drops from the lower-right corner into a second box. Interior words split</p>
+<p>per the documented rule (Node/A, Node/B); the vertical arrow survives.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-9">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-9-n0">Node</div><div class="diagram-node" data-dg-node="dg-9-n1">A</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-9-n2">Node</div><div class="diagram-node" data-dg-node="dg-9-n3">B</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-9","nodes":[{"id":"dg-9-n0","row":1,"x":0,"text":"Node"},{"id":"dg-9-n1","row":1,"x":1,"text":"A"},{"id":"dg-9-n2","row":6,"x":0,"text":"Node"},{"id":"dg-9-n3","row":6,"x":1,"text":"B"}],"edges":[{"s":"dg-9-n1","t":"dg-9-n2","arrow":true,"loop":false,"h":false,"d":false}]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 4 nodes (Node, A, Node, B), 1 vertical edge.</p>
+<h3>Sloppy B - Overlapping misaligned frames</h3>
+<p>Two frames whose right edges and corners do not line up, leaving jagged</p>
+<p>segments between them. Both interior labels survive as nodes and a vertical</p>
+<p>edge is inferred between the two clusters.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-10">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-10-n0">Top</div></div><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-10-n1">Bott</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-10","nodes":[{"id":"dg-10-n0","row":1,"x":0,"text":"Top"},{"id":"dg-10-n1","row":5,"x":0,"text":"Bott"}],"edges":[{"s":"dg-10-n0","t":"dg-10-n1","arrow":false,"loop":false,"h":false,"d":false}]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 2 nodes (Top, Bott), 1 vertical edge (arrow false).</p>
+<h3>Sloppy C - Missing left side of a box</h3>
+<p>Only the top, right and bottom borders remain. The leftover border must be</p>
+<p>consumed as frame with no stray edge and the label must survive.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-11">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-11-n0">Thing</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-11","nodes":[{"id":"dg-11-n0","row":1,"x":0,"text":"Thing"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 1 node (Thing), 0 edges.</p>
+<h3>Sloppy D - Corner bend, box never closes</h3>
+<p>The frame bends down and then stops without forming a bottom border. The</p>
+<p>opened frame must not leak a dangling vertical edge.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-12">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-12-n0">One</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-12","nodes":[{"id":"dg-12-n0","row":1,"x":0,"text":"One"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 1 node (One), 0 edges.</p>
+<h3>Sloppy E - Stray trailing stroke and glyph after a box</h3>
+<p>A horizontal dash runs out the right of a box onto an <code>x</code>. The <code>x</code> is read</p>
+<p>as its own node and the leading dash duplicates the flat edge. Diagnostic:</p>
+<p>the same source/target flat edge is emitted twice.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-13">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-13-n0">A</div><div class="diagram-node" data-dg-node="dg-13-n1">x</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-13","nodes":[{"id":"dg-13-n0","row":1,"x":0,"text":"A"},{"id":"dg-13-n1","row":1,"x":1,"text":"x"}],"edges":[{"s":"dg-13-n0","t":"dg-13-n1","arrow":false,"loop":false,"h":true,"d":false},{"s":"dg-13-n0","t":"dg-13-n1","arrow":false,"loop":false,"h":true,"d":false}]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 2 nodes (A, x), 2 flat horizontal edges (duplicated pair A -&gt; x).</p>
+<h3>Sloppy F - Doubled vertical border</h3>
+<p>Two adjacent <code>|</code> columns form the shared border between two single-letter</p>
+<p>boxes. The doubled border must be consumed as frame without splitting into</p>
+<p>edges and both letters must survive.</p>
+<div class="svg-diagram">
+  <div class="diagram-graph" id="dg-14">
+    <svg class="diagram-edges" width="100%" height="100%"></svg>
+    <div class="diagram-layers"><div class="diagram-row"><div class="diagram-node" data-dg-node="dg-14-n0">L</div><div class="diagram-node" data-dg-node="dg-14-n1">R</div></div></div>
+  </div>
+</div>
+<script>
+(function(){
+  var data = {"id":"dg-14","nodes":[{"id":"dg-14-n0","row":1,"x":0,"text":"L"},{"id":"dg-14-n1","row":1,"x":1,"text":"R"}],"edges":[]};
+  window.__diagramQueue = window.__diagramQueue || [];
+  window.__diagramQueue.push(data);
+})();
+</script>
+<p>Observed: 2 nodes (L, R), 0 edges.</p>
+<p>All fifteen diagrams self-contain. Verify each in light and dark mode across</p>
+<p>all three palettes, and re-check at the 620px viewport width. Compare actual</p>
+<p>output against the expected node/edge counts listed for each case.</p>
   </main>
 </div>
 <script>const ThemeEngine=(function(){

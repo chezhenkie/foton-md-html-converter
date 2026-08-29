@@ -667,7 +667,7 @@ also be checked.
 
 | Document | Relation |
 |---|---|
-| `html-style-css-specsheet.md` | page chrome, palettes, fonts (diagram colours declared there) |
+| `html-style-css-specsheet.md` | page chrome, palettes, fonts (diagram colours `--edge` / `--node-bg` are declared in this spec, sections 5.3 and 6.2) |
 | `fotonmdhtmlconverter-logic-flow.md` | structural pipeline narrative, section 5 |
 | `md-to-styled-html-converter-script-manual.md` | user-facing behaviour of the converter |
 | `docs/flow-mockup-darkV7.html` | visual/logic reference: flex rows + SVG edge overlay |

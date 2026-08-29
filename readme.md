@@ -95,7 +95,7 @@ foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
-- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as sharp inline SVG (boxes, labels, arrows, and `/ \` branches), themed to match the page. Raw `<svg>` markup in the fence passes through verbatim.
+- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as DOM nodes with runtime SVG edges. Text labels become nodes, connector strokes (`-`, `|`, `/`, `\`, `-->`, `^`, `v`) become logical edges, and the browser lays out the rows before JavaScript draws cubic-bezier connectors between box centers. Edges carry no arrowheads; direction is shown by the hover/tap dash-march flow. Raw `<svg>` markup in the fence passes through verbatim.
 
 
 ## 7. Script structure
@@ -145,7 +145,8 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 - Rust port complete and functional
 - Both Windows (GNU/MSVC) and Linux (musl static) release binaries build clean
 - Conversion tested; output matches the original Python v7 behavior
-- v1.1.0 adds ASCII-to-SVG diagram rendering in ` ```svg ` fences
+- v1.3.1: DOM-node + runtime SVG edge diagram rendering with hover/tap
+  dash-march direction flow (no arrowheads); see `diagram-design-specsheet.md`
 
 ### Windows exe metadata
 

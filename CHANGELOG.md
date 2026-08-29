@@ -1,5 +1,36 @@
 # Changelog
 
+## v1.3.1 (2026-08-29)
+
+### Changed
+
+- Arrowhead markers removed entirely: static SVG edges carry no direction cue
+- Direction is shown only by interaction: hovering or tapping a node lights its
+  OUTGOING edges (accent colour, stroke-width 2.7, dasharray 8 5) and dims the
+  rest; a click pins, a click on the graph background unpins (touch-friendly)
+- Reversed connectors (`<---`, `^`) swap source/target in the parser so the
+  path always starts at the true source; direction is geometry, not a drawn
+  arrowhead
+- Context-aware connector splitting: `v`/`<`/`>`/`^` only count as connectors
+  when adjacent to `-` or `|`, so words like "Bravo" stay intact
+- Heavy `=` / `===` normalization: `=` becomes `-` only when it transitively
+  touches a real stroke, keeping `v=2` style labels intact
+- h (flat horizontal) and d (diagonal) geometry hints carried on edges so the
+  renderer routes same-row edges flat and diagonals along their axis
+- `prefers-reduced-motion` guard dropped: it silently killed the dash-march
+  flow on Windows desktops with system animations off; the animation is now
+  unconditional by decision
+
+### Added
+
+- `.diagram-edge.lit` / `.diagram-edge.dim` classes and `@keyframes dg-dash`
+  (marching source-to-target dash pattern)
+- Test coverage raised to 43; visual test programme at 7 source/HTML pairs
+
+### Removed
+
+- `.dg-arrowhead` class and all `marker-end` SVG markers
+
 ## v1.3.0 (2026-08-28)
 
 ### Changed

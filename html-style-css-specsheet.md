@@ -19,7 +19,7 @@ Everything needed to build a page with three complete color palettes, each with 
 | Saturation slider: -3 to +3 (15% per step, disabled in mono) |
 | Page chrome: header, kicker, h1, lede |
 | Content styles: headings, tables, callouts, code |
-| SVG diagram wrapper (.svg-diagram) for ASCII-to-SVG rendering |
+| SVG diagram wrapper (.svg-diagram) for ASCII-to-DOM/SVG-edge rendering |
 | OS detection + native font stacks (including Linux) |
 | Responsive layout (mobile breakpoint at 620px) |
 | System preference detection (prefers-color-scheme) |
@@ -326,6 +326,7 @@ Every generated `.html` is written in the same directory as its source. There is
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
+| ```` ```svg ... ``` ```` | ASCII diagram converted to DOM nodes + runtime SVG edges; if content starts with `<svg`, passed through raw |
 
 ### 8.6 Examples
 

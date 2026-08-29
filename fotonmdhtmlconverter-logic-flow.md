@@ -1,6 +1,6 @@
 # foton-md-html-converter -- internal logic flow
 
-Version: v1.3.0
+Version: v1.3.1
 
 This document traces how a source `.md` or `.txt` file becomes a self-contained `.html` page, and records what currently works and what is still rough.
 
@@ -51,6 +51,12 @@ Then the grid is scanned twice:
 2. Connector strokes are collected: horizontal `-` runs ending in `>` or starting with `<`,
    vertical `|` runs ending in `v` or starting with `^`, and diagonal chains of `/` or `\`.
 
+Connector detection is context-aware: an arrow glyph (`v`, `<`, `>`, `^`) only
+counts as a connector when it is adjacent to a `-` or `|` in its pointing axis,
+so words like "Bravo" or "max>min" are not split mid-word. Heavy equals
+(`=`, `=`, `===`) are normalized to `-` only when they transitively touch a
+real stroke or arrowhead, keeping text like "v=2" intact as a label.
+
 Strokes that look like ASCII box borders are filtered out
 (a horizontal stroke with text directly above or below it, or a vertical stroke with text directly to its left or right).
 
@@ -60,6 +66,9 @@ Each label becomes a `LogicalNode` with a row (its original grid row) and an x-o
 Each surviving connector becomes a `LogicalEdge` by looking in the natural direction of the stroke:
 horizontal strokes connect the nearest label on the left to the nearest label on the right,
 vertical strokes connect above to below, and diagonals connect along their axis.
+For a reversed connector (`<---`, `^`) the source and target are swapped, so the
+path always starts at the true source; direction lives in the geometry, never
+in a drawn arrowhead.
 When several connectors share the same source, they are sorted left-to-right by midpoint column,
 target labels are sorted left-to-right by centre, and connector i is mapped to target i.
 This guarantees that a fan-out such as Hub -> A/B/C produces three distinct edges.
@@ -71,7 +80,16 @@ A small inline data block pushes the node and edge lists into `window.__diagramQ
 The global `Diagrams` module then reads each queue entry, computes each node box centre from the live DOM,
 and draws cubic-bezier SVG edges between them.
 Downward edges use a smooth vertical S-curve; upward edges are drawn as dashed loopback curves with a side bulge.
+Edges carry h (flat horizontal) and d (diagonal) geometry hints so the renderer
+routes same-row edges flat and diagonals along their axis instead of guessing.
 Because the geometry comes from the rendered DOM, the diagram stays correct across resizes and font changes.
+
+Edges are plain static strokes with no arrowhead markers. Direction is revealed
+only on interaction: hovering or tapping a node lights that node's OUTGOING
+edges (`.lit`: accent colour, thicker dash marching source-to-target) and dims
+all the others (`.dim`). A click pins that node's flow, and a click on the
+graph background clears the pin. There is deliberately no
+`prefers-reduced-motion` guard on the dash animation.
 
 ## 6. HTML page assembly
 
@@ -104,11 +122,17 @@ All styles and scripts are embedded as string constants in Rust modules. The rel
 
 ## 10. What is rough / not handled
 
-- ASCII diagram visual polish: node colors/types, edge spacing, label padding, arrow placement, and routing aesthetics need work.
-- No orthogonal L-shaped routing for nodes that are offset both horizontally and vertically; curves can look awkward.
+- ASCII diagram visual polish: edge spacing, label padding, and routing
+  aesthetics need work (see `diagram-design-specsheet.md` section 11 for the
+  accepted limitations and their roadmap gates).
+- Multi-word labels inside a box are split per word (each space is a word
+  boundary); free-standing multi-word labels outside boxes are split per word
+  and may not connect correctly.
+- Single-character labels can cause degenerate diagonal lines because the
+  source and target boxes line up too closely.
+- No orthogonal L-shaped routing for nodes that are offset both horizontally
+  and vertically; curves can look awkward.
 - No decision-diamond or non-rectangular shapes.
-- Single-character labels can cause degenerate diagonal lines because the source and target boxes line up too closely.
-- Free-standing multi-word labels outside boxes are split per word and may not connect correctly.
 - No nested lists.
 - Tables: no alignment syntax beyond the required separator row.
 - Markdown links and images are not validated; raw URLs are not auto-linked.

@@ -95,7 +95,7 @@ foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
-- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as DOM nodes with runtime SVG edges. Text labels become nodes, connector strokes (`-`, `|`, `/`, `\`, `-->`, `^`, `v`) become logical edges, and the browser lays out the rows before JavaScript draws cubic-bezier connectors between box centers. Fan-out from one source to several targets maps each connector to a distinct target. Loopback edges render as dashed side-bulge curves. Raw `<svg>` markup in the fence passes through verbatim.
+- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as DOM nodes with runtime SVG edges. Text labels become nodes, connector strokes (`-`, `|`, `/`, `\`, `-->`, `^`, `v`) become logical edges, and the browser lays out the rows before JavaScript draws cubic-bezier connectors between box centers. Fan-out from one source to several targets maps each connector to a distinct target. Loopback edges render as dashed side-bulge curves. Edges carry no arrowheads; direction is shown by the hover/tap dash-march flow. Raw `<svg>` markup in the fence passes through verbatim.
 
 
 ## 7. Script structure
@@ -149,6 +149,9 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 - v1.1.0 adds ASCII diagram rendering in ` ```svg ` fences
 - v1.2.0 rewrote the parser with text-first label/connector detection and fan-out routing
 - v1.3.0 replaced static SVG output with DOM-node + runtime SVG edge rendering
+- v1.3.1 removed arrowheads, added the hover/tap dash-march direction flow,
+  reversed-connector source/target swap, context-aware connector splitting and
+  `=` normalization
 
 ### Windows exe metadata
 
