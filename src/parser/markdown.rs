@@ -39,7 +39,6 @@ pub fn md_to_html(md: &str) -> String {
     }
 
     let mut in_code = false;
-    let mut in_svg = false;
     let mut in_table = false;
     let mut in_ul = false;
     let mut in_ol = false;
@@ -74,21 +73,7 @@ pub fn md_to_html(md: &str) -> String {
                 close_table(&mut in_table, &mut html_parts);
                 in_code = true;
                 code_lang = line.trim()[3..].trim().to_string();
-                if code_lang == "svg" {
-                    in_svg = true;
-                }
                 code_buf.clear();
-            } else if in_svg {
-                let raw = code_buf.join("\n");
-                let body = if raw.trim_start().starts_with("<svg") {
-                    format!("<div class=\"svg-diagram\">{}</div>", raw)
-                } else {
-                    super::ascii::ascii_to_html(&raw)
-                };
-                html_parts.push(body);
-                in_code = false;
-                in_svg = false;
-                code_lang.clear();
             } else {
                 let lang_attr = if code_lang.is_empty() {
                     String::new()
@@ -231,23 +216,13 @@ pub fn md_to_html(md: &str) -> String {
     close_table(&mut in_table, &mut html_parts);
 
     if in_code {
-        if in_svg {
-            let raw = code_buf.join("\n");
-            let body = if raw.trim_start().starts_with("<svg") {
-                format!("<div class=\"svg-diagram\">{}</div>", raw)
-            } else {
-                super::ascii::ascii_to_html(&raw)
-            };
-            html_parts.push(body);
+        let lang_attr = if code_lang.is_empty() {
+            String::new()
         } else {
-            let lang_attr = if code_lang.is_empty() {
-                String::new()
-            } else {
-                format!(" class=\"language-{}\"", code_lang)
-            };
-            let joined = escape_html(&code_buf.join("\n"));
-            html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
-        }
+            format!(" class=\"language-{}\"", code_lang)
+        };
+        let joined = escape_html(&code_buf.join("\n"));
+        html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
     }
 
     html_parts.join("\n")
@@ -380,13 +355,13 @@ mod tests {
     }
 
     #[test]
-    fn svg_fenced_block_passes_through_verbatim() {
+    fn svg_fence_is_treated_as_plain_code_block() {
         let input = "```svg\n<svg viewBox=\"0 0 100 20\"><rect x=\"5\" y=\"5\" width=\"90\" height=\"10\"/></svg>\n```";
         let output = md_to_html(input);
-        assert!(output.contains("<svg viewBox=\"0 0 100 20\">"));
-        assert!(output.contains("</svg>"));
-        assert!(!output.contains("&lt;svg"));
-        assert!(!output.contains("&lt;/svg&gt;"));
+        assert!(output.contains("&lt;svg viewBox=\"0 0 100 20\"&gt;"));
+        assert!(output.contains("&lt;/svg&gt;"));
+        assert!(!output.contains("<svg"));
+        assert!(!output.contains("diagram"));
     }
 
     #[test]
@@ -395,27 +370,5 @@ mod tests {
         let output = md_to_html(input);
         assert!(output.contains("&lt;div"));
         assert!(output.contains("&lt;"));
-        assert!(!output.contains("<div class=\"svg-diagram\">"));
-    }
-
-    #[test]
-    fn unclosed_svg_block_is_flushed_at_eof() {
-        let input = "```svg\n<svg viewBox=\"0 0 100 20\"><rect/></svg>\n";
-        let output = md_to_html(input);
-        assert!(output.contains("<div class=\"svg-diagram\">"));
-        assert!(output.contains("<svg viewBox=\"0 0 100 20\">"));
-        assert!(!output.contains("&lt;svg"));
-    }
-
-    #[test]
-    fn ascii_diagram_in_svg_fence_is_converted() {
-        let input =
-            "```svg\n+------+      +------+\n|  A   | ---> |  B   |\n+------+      +------+\n```";
-        let output = md_to_html(input);
-        assert!(output.contains("<div class=\"svg-diagram\">"));
-        assert!(output.contains("diagram-graph"));
-        assert!(output.contains("diagram-node"));
-        assert!(output.contains("__diagramQueue"));
-        assert!(!output.contains("<pre><code"));
     }
 }

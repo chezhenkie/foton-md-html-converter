@@ -20,119 +20,47 @@ This document traces how a source `.md` or `.txt` file becomes a self-contained 
 
 ## 3. Markdown parser
 
-`src/parser/markdown.rs` is a single-pass line scanner. It skips an initial YAML front-matter block delimited by `---`, then walks the remaining lines and maintains state flags for code blocks, SVG blocks, tables, unordered lists, and ordered lists.
+`src/parser/markdown.rs` is a single-pass line scanner. It skips an initial YAML front-matter block delimited by `---`, then walks the remaining lines and maintains state flags for code blocks, tables, unordered lists, and ordered lists.
 
 - **Headings** (`#` to `######`) are matched with a regex. `h2` gets an auto-incremented section number and a decorative rule; `h3` and other levels are plain.
 - **Paragraphs** are any non-empty, non-special line; their content is passed through the inline parser.
-- **Fenced code blocks** start and end with `` ``` ``. A language tag becomes `class="language-<lang>"`. Content is HTML-escaped.
-- **SVG fences** are code blocks whose language is exactly `svg`. If the raw content begins with `<svg`, it is pasted verbatim; otherwise it is handed to `parser::ascii::ascii_to_html` and wrapped in `<div class="svg-diagram">`.
+- **Fenced code blocks** start and end with `` ``` ``. A language tag becomes `class="language-<lang>"`. Content is HTML-escaped. All languages, including `svg`, are treated identically.
 - **Tables** are detected when a trimmed line starts with `|`. The first such line becomes the header row; a separator row of dashes/colons is consumed and discarded; subsequent rows become body rows. All cell content is inline-parsed.
 - **Blockquotes** (`> ...`) become `<div class="callout"><p>...</p></div>`.
 - **Unordered lists** start with `- ` or `* `; ordered lists start with `digits. `. Switching between the two closes the previous list and opens a new one.
 - **Horizontal rules** (`---`, `***`, `___`) close any open list/table and produce no output.
-- **Unclosed blocks** at EOF are flushed: code blocks become `<pre><code>`, SVG blocks become diagrams.
+- **Unclosed blocks** at EOF are flushed: code blocks become `<pre><code>`.
 
 ## 4. Inline parser
 
 `src/parser/inline.rs` first HTML-escapes `&`, `<`, `>`, then applies regex replacements in fixed order: inline code `` `...` ``, bold-italic `***...***`, bold `**...**`, italic `*...*`, and links `[text](url)`. Because escaping happens first, backtick content containing `<` or `&` renders correctly. The regexes are compiled once via `LazyLock`.
 
-## 5. ASCII diagram parser (the tricky part)
-
-`src/parser/ascii.rs` now has three clearly separated layers.
-
-### 5.1 Decode
-
-The input is normalised so Unicode box-drawing characters
-(`─`, `│`, `┌`, `┐`, `└`, `┘`, `├`, `┤`, `┬`, `┴`, `┼`, `→`, etc.)
-become ASCII equivalents (`-`, `|`, `+`, `/`, `\`, `>`, `<`, `^`, `v`).
-Then the grid is scanned twice:
-
-1. Contiguous runs of non-whitespace, non-connector characters become text labels.
-2. Connector strokes are collected: horizontal `-` runs ending in `>` or starting with `<`,
-   vertical `|` runs ending in `v` or starting with `^`, and diagonal chains of `/` or `\`.
-
-Connector detection is context-aware: an arrow glyph (`v`, `<`, `>`, `^`) only
-counts as a connector when it is adjacent to a `-` or `|` in its pointing axis,
-so words like "Bravo" or "max>min" are not split mid-word. Heavy equals
-(`=`, `=`, `===`) are normalized to `-` only when they transitively touch a
-real stroke or arrowhead, keeping text like "v=2" intact as a label.
-
-Strokes that look like ASCII box borders are filtered out
-(a horizontal stroke with text directly above or below it, or a vertical stroke with text directly to its left or right).
-
-### 5.2 Rebuild logically
-
-Each label becomes a `LogicalNode` with a row (its original grid row) and an x-order within that row.
-Each surviving connector becomes a `LogicalEdge` by looking in the natural direction of the stroke:
-horizontal strokes connect the nearest label on the left to the nearest label on the right,
-vertical strokes connect above to below, and diagonals connect along their axis.
-For a reversed connector (`<---`, `^`) the source and target are swapped, so the
-path always starts at the true source; direction lives in the geometry, never
-in a drawn arrowhead.
-When several connectors share the same source, they are sorted left-to-right by midpoint column,
-target labels are sorted left-to-right by centre, and connector i is mapped to target i.
-This guarantees that a fan-out such as Hub -> A/B/C produces three distinct edges.
-
-### 5.3 Render graphically
-
-The logical graph is emitted as HTML DOM nodes laid out in flex rows inside `.diagram-graph`.
-A small inline data block pushes the node and edge lists into `window.__diagramQueue`.
-The global `Diagrams` module then reads each queue entry, computes each node box centre from the live DOM,
-and draws cubic-bezier SVG edges between them.
-Downward edges use a smooth vertical S-curve; upward edges are drawn as dashed loopback curves with a side bulge.
-Edges carry h (flat horizontal) and d (diagonal) geometry hints so the renderer
-routes same-row edges flat and diagonals along their axis instead of guessing.
-Because the geometry comes from the rendered DOM, the diagram stays correct across resizes and font changes.
-
-Edges are plain static strokes with no arrowhead markers. Direction is revealed
-only on interaction: hovering or tapping a node lights that node's OUTGOING
-edges (`.lit`: accent colour, thicker dash marching source-to-target) and dims
-all the others (`.dim`). A click pins that node's flow, and a click on the
-graph background clears the pin. There is deliberately no
-`prefers-reduced-motion` guard on the dash animation.
-
-## 6. HTML page assembly
+## 5. HTML page assembly
 
 `src/html/builder.rs` constructs the final document. It injects:
 
 - Toolbar HTML from `src/html/toolbar.rs` (a fixed 24px bar with mode toggle, font toggle, palette buttons, brightness slider, saturation slider).
 - CSS from `src/css/toolbar.rs`, `src/css/theme.rs`, and `src/css/content.rs`.
-- JavaScript from `src/js/os_detect.rs` (sets `data-os` from user-agent), `src/js/theme_engine.rs` (palette/brightness/saturation logic), `src/js/menubar.rs` (toolbar event handling), `src/js/diagrams.rs` (renders ASCII diagrams from decoded logical graphs), and `src/js/init.rs` (initialises everything and respects `prefers-color-scheme`).
+- JavaScript from `src/js/os_detect.rs` (sets `data-os` from user-agent), `src/js/theme_engine.rs` (palette/brightness/saturation logic), `src/js/menubar.rs` (toolbar event handling), and `src/js/init.rs` (initialises everything and respects `prefers-color-scheme`).
 
 The page body is a `<div class="wrap">` containing a `<header>` (kicker, lede, title) and a `<main>` with the converted Markdown body.
 
-## 7. CSS / JS injection
+## 6. CSS / JS injection
 
 All styles and scripts are embedded as string constants in Rust modules. The release build uses LTO and symbol stripping. There are no external network dependencies, no localStorage, and no output files other than the `.html` sibling.
 
-## 8. Output writing
+## 7. Output writing
 
 `io::convert::convert_file` writes the assembled page with `std::fs::write` to `md_file.with_extension("html")`. If writing fails, the program exits with an error message. The tool does not create subdirectories and does not overwrite anything special -- it simply produces a sibling file.
 
-## 9. What works
+## 8. What works
 
 - CLI discovery of `.md` and `.txt` files in a folder or single-file conversion.
 - Full-page output with toolbar, theme engine, OS-aware fonts, and responsive layout.
 - Markdown: headings (auto-numbered h2), paragraphs, bold/italic/code/links, fenced code blocks with language class, tables, blockquotes/callouts, unordered/ordered lists, horizontal rules, YAML front matter skipping, lede extraction.
-- SVG passthrough when the fence starts with `<svg`.
-- ASCII diagram fan-out: one source label can connect to several distinct target labels.
-- DOM-based diagram rendering: nodes are laid out in flex rows and SVG edges are drawn from live box centres at runtime.
-- Downward cubic-bezier edges and dashed loopback curves for upward edges.
-- Unicode box-drawing normalisation.
 
-## 10. What is rough / not handled
+## 9. What is rough / not handled
 
-- ASCII diagram visual polish: edge spacing, label padding, and routing
-  aesthetics need work (see `diagram-design-specsheet.md` section 11 for the
-  accepted limitations and their roadmap gates).
-- Multi-word labels inside a box are split per word (each space is a word
-  boundary); free-standing multi-word labels outside boxes are split per word
-  and may not connect correctly.
-- Single-character labels can cause degenerate diagonal lines because the
-  source and target boxes line up too closely.
-- No orthogonal L-shaped routing for nodes that are offset both horizontally
-  and vertically; curves can look awkward.
-- No decision-diamond or non-rectangular shapes.
 - No nested lists.
 - Tables: no alignment syntax beyond the required separator row.
 - Markdown links and images are not validated; raw URLs are not auto-linked.

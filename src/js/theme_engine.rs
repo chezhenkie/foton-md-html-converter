@@ -116,9 +116,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#eceae4',
         '--pre-bg':'#343433',
         '--shadow-color':'rgba(45,45,45,0.06)',
-        '--pre-ink':'#f2f2ef',
-        '--edge':'#b5b3ab',
-        '--node-bg':'#efeee8'
+        '--pre-ink':'#f2f2ef'
       },
       dark:{
         '--paper':'#0a0c10',
@@ -136,9 +134,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#1a2030',
         '--pre-bg':'#0a0c10',
         '--shadow-color':'rgba(0,0,0,0.4)',
-        '--pre-ink':'#d0ccc0',
-        '--edge':'#8b97ab',
-        '--node-bg':'#222a3a'
+        '--pre-ink':'#d0ccc0'
       }
     },
     solarized:{
@@ -162,9 +158,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#eee8d5',
         '--pre-bg':'#eee8d5',
         '--shadow-color':'rgba(0,0,0,0.05)',
-        '--pre-ink':'#586e75',
-        '--edge':'#93a1a1',
-        '--node-bg':'#fdf6e3'
+        '--pre-ink':'#586e75'
       },
       dark:{
         '--paper':'#002b36',
@@ -186,9 +180,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#073642',
         '--pre-bg':'#073642',
         '--shadow-color':'rgba(0,0,0,0.3)',
-        '--pre-ink':'#93a1a1',
-        '--edge':'#839496',
-        '--node-bg':'#0b3f4e'
+        '--pre-ink':'#93a1a1'
       }
     },
     monochrome:{
@@ -208,9 +200,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#e8e8e8',
         '--pre-bg':'#333333',
         '--shadow-color':'rgba(0,0,0,0.08)',
-        '--pre-ink':'#f0f0f0',
-        '--edge':'#c2c2c2',
-        '--node-bg':'#efefef'
+        '--pre-ink':'#f0f0f0'
       },
       dark:{
         '--paper':'#1a1a1a',
@@ -228,9 +218,7 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
         '--code-bg':'#333333',
         '--pre-bg':'#111111',
         '--shadow-color':'rgba(0,0,0,0.3)',
-        '--pre-ink':'#cccccc',
-        '--edge':'#cccccc',
-        '--node-bg':'#2e2e2e'
+        '--pre-ink':'#cccccc'
       }
     }
   };

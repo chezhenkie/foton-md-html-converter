@@ -64,7 +64,6 @@ All arguments are optional.
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
-| ```` ```svg ... ``` ```` | ASCII diagram auto-converted to DOM nodes + runtime SVG edges; text labels become nodes, `-`/`|`/`/`/`\` strokes become logical edges; if content starts with `<svg`, passed through raw |
 
 ## 5. Examples
 
@@ -95,7 +94,6 @@ foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
-- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as DOM nodes with runtime SVG edges. Text labels become nodes, connector strokes (`-`, `|`, `/`, `\`, `-->`, `^`, `v`) become logical edges, and the browser lays out the rows before JavaScript draws cubic-bezier connectors between box centers. Fan-out from one source to several targets maps each connector to a distinct target. Loopback edges render as dashed side-bulge curves. Edges carry no arrowheads; direction is shown by the hover/tap dash-march flow. Raw `<svg>` markup in the fence passes through verbatim.
 
 
 ## 7. Script structure
@@ -123,13 +121,11 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 | `src/js/theme_engine.rs` | Module 2 (THEME_ENGINE_JS) | ThemeEngine JS |
 | `src/js/menubar.rs` | Module 2 (MENUBAR_JS) | MenuBar JS |
 | `src/js/os_detect.rs` | Module 4 (OS_DETECT_JS) | OS detection JS |
-| `src/js/diagrams.rs` | Module 4 (DIAGRAMS_JS) | Diagram rendering JS |
 | `src/js/init.rs` | Module 4 (INIT_JS) | Bootstrap JS |
 | `src/html/toolbar.rs` | Module 4 (TOOLBAR_HTML) | Toolbar markup |
 | `src/html/builder.rs` | Module 4 (build_page) | Page assembly |
 | `src/parser/markdown.rs` | Module 3 (md_to_html) | Markdown parser |
 | `src/parser/inline.rs` | Module 3 (inline, escape_html) | Inline formatting |
-| `src/parser/ascii.rs` | Module 3 (ascii_to_html) | ASCII diagram to HTML/DOM rendering |
 | `src/io/files.rs` | Module 3 (TITLE_MAP, collect_source_files) | File discovery |
 | `src/io/convert.rs` | Module 3 (convert_file) | Conversion loop |
 | `src/main.rs` | Module 3 (main) | CLI entry point |
@@ -146,12 +142,8 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 - Rust port complete and functional
 - Both Windows (GNU/MSVC) and Linux (musl static) release binaries build clean
 - Conversion tested; output matches the original Python v7 behavior
-- v1.1.0 adds ASCII diagram rendering in ` ```svg ` fences
-- v1.2.0 rewrote the parser with text-first label/connector detection and fan-out routing
-- v1.3.0 replaced static SVG output with DOM-node + runtime SVG edge rendering
-- v1.3.1 removed arrowheads, added the hover/tap dash-march direction flow,
-  reversed-connector source/target swap, context-aware connector splitting and
-  `=` normalization
+- The ASCII diagram feature and the ` ```svg ` fence special case were removed;
+  ` ```svg ` blocks render as plain escaped code blocks like any other language
 
 ### Windows exe metadata
 

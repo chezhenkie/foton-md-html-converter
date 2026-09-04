@@ -64,7 +64,6 @@ All arguments are optional.
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
-| ```` ```svg ... ``` ```` | ASCII diagram auto-converted to DOM nodes + runtime SVG edges; if content starts with `<svg`, passed through raw |
 
 ## 5. Examples
 
@@ -95,7 +94,6 @@ foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
-- **SVG diagrams** -- ASCII box-drawing blocks inside a ` ```svg ` fence render as DOM nodes with runtime SVG edges. Text labels become nodes, connector strokes (`-`, `|`, `/`, `\`, `-->`, `^`, `v`) become logical edges, and the browser lays out the rows before JavaScript draws cubic-bezier connectors between box centers. Edges carry no arrowheads; direction is shown by the hover/tap dash-march flow. Raw `<svg>` markup in the fence passes through verbatim.
 
 
 ## 7. Script structure
@@ -128,7 +126,6 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 | `src/html/builder.rs` | Module 4 (build_page) | Page assembly |
 | `src/parser/markdown.rs` | Module 3 (md_to_html) | Markdown parser |
 | `src/parser/inline.rs` | Module 3 (inline, escape_html) | Inline formatting |
-| `src/parser/ascii.rs` | Module 3 (ascii_to_html) | ASCII diagram to HTML/DOM rendering |
 | `src/io/files.rs` | Module 3 (TITLE_MAP, collect_source_files) | File discovery |
 | `src/io/convert.rs` | Module 3 (convert_file) | Conversion loop |
 | `src/main.rs` | Module 3 (main) | CLI entry point |
@@ -145,8 +142,8 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 - Rust port complete and functional
 - Both Windows (GNU/MSVC) and Linux (musl static) release binaries build clean
 - Conversion tested; output matches the original Python v7 behavior
-- v1.3.1: DOM-node + runtime SVG edge diagram rendering with hover/tap
-  dash-march direction flow (no arrowheads); see `diagram-design-specsheet.md`
+- The ASCII diagram feature and the ` ```svg ` fence special case were removed;
+  ` ```svg ` blocks render as plain escaped code blocks like any other language
 
 ### Windows exe metadata
 

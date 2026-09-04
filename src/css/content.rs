@@ -27,17 +27,4 @@ code{font-family:var(--font-mono);font-size:13px;background:var(--code-bg);color
 pre{background:var(--pre-bg);color:var(--pre-ink);padding:16px 20px;border-radius:4px;overflow-x:auto;margin:18px 0 24px;font-family:var(--font-mono);font-size:13px;line-height:1.6;transition:background .3s,color .3s}
 pre code{background:none;color:inherit;padding:0}
 .lede,em,.callout{font-family:var(--font-serif)!important}
-.svg-diagram{display:block;text-align:center;margin:24px 0;padding:20px;background:var(--card);border:1px solid var(--line);border-radius:4px;transition:background .3s,border-color .3s}
-.svg-diagram svg{max-width:100%;height:auto}
-.diagram-graph{position:relative;background:var(--card);border:1px solid var(--line);border-radius:4px;padding:30px 24px 34px;overflow-x:auto;min-height:120px}
-.diagram-edges{position:absolute;inset:0;width:100%;height:100%;overflow:visible;pointer-events:none;z-index:0}
-.diagram-layers{position:relative;z-index:1;display:flex;flex-direction:column;gap:38px}
-.diagram-row{display:flex;justify-content:space-evenly;align-items:flex-start;padding:0 12px;gap:46px}
-.diagram-node{background:var(--node-bg, var(--card));border:1px solid var(--line);border-top:4px solid var(--accent);width:160px;min-height:64px;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;font-family:var(--font-ui);font-size:14px;font-weight:600;color:var(--espresso);text-align:center;box-shadow:0 1px 0 var(--shadow-color);border-radius:3px;overflow:hidden;transition:box-shadow .15s ease,transform .15s ease,border-color .15s ease,background .35s ease}
-.diagram-node:hover{box-shadow:0 3px 10px var(--shadow-hover);transform:translateY(-1px)}
-.diagram-edge{fill:none;stroke:var(--edge, var(--line));stroke-width:2.8;transition:stroke .35s ease}
-.diagram-edge.loop{stroke-dasharray:5 4}
-.diagram-edge.lit{stroke:var(--accent);stroke-width:2.7;stroke-dasharray:8 5;animation:dg-dash .9s linear infinite}
-.diagram-edge.dim{opacity:.25}
-@keyframes dg-dash{to{stroke-dashoffset:-26}}
-@media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}.diagram-node{width:120px;min-height:54px;padding:10px;font-size:12px}.diagram-row{gap:24px}}"#;
+@media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}}"#;

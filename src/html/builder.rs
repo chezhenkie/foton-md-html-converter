@@ -41,7 +41,6 @@ pub fn build_page(title: &str, lede: &str, body_html: &str, kicker: Option<&str>
 <script>{}</script>
 <script>{}</script>
 <script>{}</script>
-<script>{}</script>
 </body>
 </html>"#,
         title,
@@ -54,7 +53,6 @@ pub fn build_page(title: &str, lede: &str, body_html: &str, kicker: Option<&str>
         body_html,
         js::THEME_ENGINE_JS,
         js::MENUBAR_JS,
-        js::DIAGRAMS_JS,
         js::INIT_JS
     )
 }
