@@ -29,6 +29,48 @@ fn is_hr(line: &str) -> bool {
     count >= 3
 }
 
+// Buffer helpers: the old Vec<String> + join("\n") is replaced by one String;
+// begin_line reproduces the join separator between document parts.
+fn begin_line(html: &mut String) {
+    if !html.is_empty() {
+        html.push('\n');
+    }
+}
+
+fn close_lists(html: &mut String, in_ul: &mut bool, in_ol: &mut bool) {
+    if *in_ul {
+        begin_line(html);
+        html.push_str("</ul>");
+        *in_ul = false;
+    }
+    if *in_ol {
+        begin_line(html);
+        html.push_str("</ol>");
+        *in_ol = false;
+    }
+}
+
+fn close_table(html: &mut String, in_table: &mut bool) {
+    if *in_table {
+        begin_line(html);
+        html.push_str("</tbody></table>");
+        *in_table = false;
+    }
+}
+
+fn flush_code_block(html: &mut String, code_buf: &[&str], code_lang: &str) {
+    begin_line(html);
+    html.push_str("<pre><code");
+    if !code_lang.is_empty() {
+        html.push_str(" class=\"language-");
+        html.push_str(code_lang);
+        html.push('"');
+    }
+    html.push('>');
+    html.push_str(&escape_html(&code_buf.join("\n")));
+    html.push_str("</code></pre>");
+}
+
 pub fn extract_lede(md: &str) -> Option<String> {
     let md = strip_bom(md);
     let lines: Vec<&str> = md.split('\n').collect();
@@ -50,7 +92,7 @@ pub fn extract_lede(md: &str) -> Option<String> {
 pub fn md_to_html(md: &str) -> String {
     let md = strip_bom(md);
     let lines: Vec<&str> = md.split('\n').collect();
-    let mut html_parts: Vec<String> = Vec::new();
+    let mut html = String::with_capacity(md.len());
     let mut i = 0;
 
     if lines.first() == Some(&"---") {
@@ -66,46 +108,22 @@ pub fn md_to_html(md: &str) -> String {
     let mut in_table = false;
     let mut in_ul = false;
     let mut in_ol = false;
-    let mut code_buf: Vec<String> = Vec::new();
+    let mut code_buf: Vec<&str> = Vec::new();
     let mut code_lang = String::new();
     let mut section_num = 0u32;
-
-    let close_lists = |in_ul: &mut bool, in_ol: &mut bool, parts: &mut Vec<String>| {
-        if *in_ul {
-            parts.push("</ul>".to_string());
-            *in_ul = false;
-        }
-        if *in_ol {
-            parts.push("</ol>".to_string());
-            *in_ol = false;
-        }
-    };
-
-    let close_table = |in_table: &mut bool, parts: &mut Vec<String>| {
-        if *in_table {
-            parts.push("</tbody></table>".to_string());
-            *in_table = false;
-        }
-    };
 
     while i < lines.len() {
         let line = lines[i];
 
         if line.trim().starts_with("```") {
             if !in_code {
-                close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
-                close_table(&mut in_table, &mut html_parts);
+                close_lists(&mut html, &mut in_ul, &mut in_ol);
+                close_table(&mut html, &mut in_table);
                 in_code = true;
                 code_lang = line.trim()[3..].trim().to_string();
                 code_buf.clear();
             } else {
-                let lang_attr = if code_lang.is_empty() {
-                    String::new()
-                } else {
-                    format!(" class=\"language-{}\"", code_lang)
-                };
-                let joined = escape_html(&code_buf.join("\n"));
-                html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
+                flush_code_block(&mut html, &code_buf, &code_lang);
                 in_code = false;
                 code_lang.clear();
             }
@@ -114,7 +132,7 @@ pub fn md_to_html(md: &str) -> String {
         }
 
         if in_code {
-            code_buf.push(line.to_string());
+            code_buf.push(line);
             i += 1;
             continue;
         }
@@ -122,43 +140,55 @@ pub fn md_to_html(md: &str) -> String {
         let stripped = line.trim();
 
         if stripped.is_empty() {
-            close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
-            close_table(&mut in_table, &mut html_parts);
+            close_lists(&mut html, &mut in_ul, &mut in_ol);
+            close_table(&mut html, &mut in_table);
             i += 1;
             continue;
         }
 
         if is_hr(stripped) {
-            close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
-            close_table(&mut in_table, &mut html_parts);
+            close_lists(&mut html, &mut in_ul, &mut in_ol);
+            close_table(&mut html, &mut in_table);
             i += 1;
             continue;
         }
 
         if let Some(caps) = HEADING_RE.captures(stripped) {
-            close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
-            close_table(&mut in_table, &mut html_parts);
+            close_lists(&mut html, &mut in_ul, &mut in_ol);
+            close_table(&mut html, &mut in_table);
             let level = caps.get(1).unwrap().as_str().len();
             let content = inline(caps.get(2).unwrap().as_str());
 
+            begin_line(&mut html);
             if level == 2 {
                 section_num += 1;
-                html_parts.push(format!(
-                    "<h2><span class=\"num\">{}</span>{}</h2>",
-                    section_num, content
-                ));
-                html_parts.push("<div class=\"rule\"></div>".to_string());
+                html.push_str("<h2><span class=\"num\">");
+                html.push_str(section_num.to_string().as_str());
+                html.push_str("</span>");
+                html.push_str(&content);
+                html.push_str("</h2>");
+                begin_line(&mut html);
+                html.push_str("<div class=\"rule\"></div>");
             } else if level == 3 {
-                html_parts.push(format!("<h3>{}</h3>", content));
+                html.push_str("<h3>");
+                html.push_str(&content);
+                html.push_str("</h3>");
             } else {
-                html_parts.push(format!("<h{}>{}</h{}>", level, content, level));
+                let lvl = level.to_string();
+                html.push_str("<h");
+                html.push_str(&lvl);
+                html.push('>');
+                html.push_str(&content);
+                html.push_str("</h");
+                html.push_str(&lvl);
+                html.push('>');
             }
             i += 1;
             continue;
         }
 
         if stripped.contains('|') && stripped.starts_with('|') {
-            close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
+            close_lists(&mut html, &mut in_ul, &mut in_ol);
             let cells: Vec<&str> = stripped
                 .split('|')
                 .skip(1)
@@ -177,83 +207,99 @@ pub fn md_to_html(md: &str) -> String {
                     continue;
                 }
                 in_table = true;
-                let ths: String = cells
-                    .iter()
-                    .map(|c| format!("<th>{}</th>", inline(c)))
-                    .collect();
-                html_parts.push(format!("<table><thead><tr>{}</tr></thead><tbody>", ths));
+                begin_line(&mut html);
+                html.push_str("<table><thead><tr>");
+                for c in &cells {
+                    html.push_str("<th>");
+                    html.push_str(&inline(c));
+                    html.push_str("</th>");
+                }
+                html.push_str("</tr></thead><tbody>");
             } else {
-                let tds: String = cells
-                    .iter()
-                    .map(|c| format!("<td>{}</td>", inline(c)))
-                    .collect();
-                html_parts.push(format!("<tr>{}</tr>", tds));
+                begin_line(&mut html);
+                html.push_str("<tr>");
+                for c in &cells {
+                    html.push_str("<td>");
+                    html.push_str(&inline(c));
+                    html.push_str("</td>");
+                }
+                html.push_str("</tr>");
             }
             i += 1;
             continue;
         } else {
-            close_table(&mut in_table, &mut html_parts);
+            close_table(&mut html, &mut in_table);
         }
 
         if stripped.starts_with('>') {
-            close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
+            close_lists(&mut html, &mut in_ul, &mut in_ol);
             let content = inline(stripped.trim_start_matches('>').trim());
-            html_parts.push(format!("<div class=\"callout\"><p>{}</p></div>", content));
+            begin_line(&mut html);
+            html.push_str("<div class=\"callout\"><p>");
+            html.push_str(&content);
+            html.push_str("</p></div>");
             i += 1;
             continue;
         }
 
         if UL_RE.is_match(stripped) {
             if in_ol {
-                html_parts.push("</ol>".to_string());
+                begin_line(&mut html);
+                html.push_str("</ol>");
                 in_ol = false;
             }
             if !in_ul {
-                html_parts.push("<ul>".to_string());
+                begin_line(&mut html);
+                html.push_str("<ul>");
                 in_ul = true;
             }
             let content = inline(UL_RE.replace(stripped, "").as_ref());
-            html_parts.push(format!("<li>{}</li>", content));
+            begin_line(&mut html);
+            html.push_str("<li>");
+            html.push_str(&content);
+            html.push_str("</li>");
             i += 1;
             continue;
         }
 
         if let Some(caps) = OL_RE.captures(stripped) {
             if in_ul {
-                html_parts.push("</ul>".to_string());
+                begin_line(&mut html);
+                html.push_str("</ul>");
                 in_ul = false;
             }
             if !in_ol {
-                html_parts.push("<ol>".to_string());
+                begin_line(&mut html);
+                html.push_str("<ol>");
                 in_ol = true;
             }
             let content = inline(caps.get(2).unwrap().as_str());
-            html_parts.push(format!("<li>{}</li>", content));
+            begin_line(&mut html);
+            html.push_str("<li>");
+            html.push_str(&content);
+            html.push_str("</li>");
             i += 1;
             continue;
         }
 
-        close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
+        close_lists(&mut html, &mut in_ul, &mut in_ol);
 
         let content = inline(stripped);
-        html_parts.push(format!("<p>{}</p>", content));
+        begin_line(&mut html);
+        html.push_str("<p>");
+        html.push_str(&content);
+        html.push_str("</p>");
         i += 1;
     }
 
-    close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
-    close_table(&mut in_table, &mut html_parts);
+    close_lists(&mut html, &mut in_ul, &mut in_ol);
+    close_table(&mut html, &mut in_table);
 
     if in_code {
-        let lang_attr = if code_lang.is_empty() {
-            String::new()
-        } else {
-            format!(" class=\"language-{}\"", code_lang)
-        };
-        let joined = escape_html(&code_buf.join("\n"));
-        html_parts.push(format!("<pre><code{}>{}</code></pre>", lang_attr, joined));
+        flush_code_block(&mut html, &code_buf, &code_lang);
     }
 
-    html_parts.join("\n")
+    html
 }
 
 #[cfg(test)]

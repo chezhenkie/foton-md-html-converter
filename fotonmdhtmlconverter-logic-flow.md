@@ -20,7 +20,7 @@ This document traces how a source `.md` or `.txt` file becomes a self-contained 
 
 ## 3. Markdown parser
 
-`src/parser/markdown.rs` is a single-pass line scanner. A leading UTF-8 BOM is stripped, it skips an initial YAML front-matter block delimited by `---`, then walks the remaining lines and maintains state flags for code blocks, tables, unordered lists, and ordered lists.
+`src/parser/markdown.rs` is a single-pass line scanner. A leading UTF-8 BOM is stripped, it skips an initial YAML front-matter block delimited by `---`, then walks the remaining lines and maintains state flags for code blocks, tables, unordered lists, and ordered lists. Output is written into a single pre-sized `String` buffer; a `begin_line` helper inserts the element separator, so the document is never assembled twice (the older `Vec<String>` + `join` approach is gone). Code-block flushing is unified in one `flush_code_block` helper used both at fence close and at EOF.
 
 - **Headings** (`#` to `######`) are matched with a regex. `h2` gets an auto-incremented section number and a decorative rule; `h3` and other levels are plain.
 - **Paragraphs** are any non-empty, non-special line; their content is passed through the inline parser.
@@ -37,7 +37,7 @@ This document traces how a source `.md` or `.txt` file becomes a self-contained 
 
 ## 5. HTML page assembly
 
-`src/html/builder.rs` constructs the final document. It injects:
+`src/html/builder.rs` constructs the final document. The constant part of the shell -- everything from the doctype through the `<style>` block, toolbar markup, and opening `<header>` tag, plus the three trailing script blocks -- is assembled once per process into two `LazyLock<String>` segments plus small `const` literals. `build_page` then splices only the dynamic parts (title, header, body) into a single `String::with_capacity` allocation, so the roughly 21 KB of embedded CSS and JS is never re-copied per converted file. It injects:
 
 - Toolbar HTML from `src/html/toolbar.rs` (a fixed 24px bar with mode toggle, font toggle, palette buttons, brightness slider, saturation slider).
 - CSS from `src/css/toolbar.rs`, `src/css/theme.rs`, and `src/css/content.rs`.

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+### Performance
+
+- The page shell (about 21 KB of embedded CSS/JS) is assembled once per
+  process into constant `LazyLock` segments; `build_page` now splices only
+  the title, header, and body with a single sized allocation instead of
+  re-copying the shell through `format!` for every converted file
+- `md_to_html` writes into one pre-sized `String` buffer, replacing the
+  `Vec<String>` of per-element `format!` allocations and the final `join`
+  that duplicated the whole document
+- The two duplicated code-block flush sites are unified into
+  `flush_code_block`; code fence buffers borrow lines instead of copying them
+- Conversion is roughly 1.2x faster across all tested file sizes; output
+  bytes are identical (see performance-benchmark-report.md, 2026-09-04)
+
 ### Removed
 
 - The entire ASCII diagram feature: `src/parser/ascii.rs` (ASCII-to-DOM
