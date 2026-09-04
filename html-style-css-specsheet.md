@@ -280,7 +280,7 @@ Three custom properties -- `--font-serif` (body), `--font-ui` (sans UI), `--font
 ### 8.1 Usage
 
 ```bash
-foton-md-html-converter-x64 [--target <path>] [--kicker <text>]
+foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 ```
 
 All arguments are optional.
@@ -289,6 +289,7 @@ All arguments are optional.
 |---|---|---|
 | `--target <path>` | *(current directory)* | A single `.md`/`.txt` file or a directory. Trailing slashes ignored. When absent, every `.md`/`.txt` in cwd is converted. |
 | `--kicker <text>` | *(empty)* | Small uppercase label above the title on each page. Omitted if empty. |
+| `PATH...` | *(none)* | One or more files and/or folders as bare paths (drag-and-drop input). Cannot be combined with `--target`. |
 
 ### 8.2 Same-folder output rule
 
@@ -301,7 +302,13 @@ Every generated `.html` is written in the same directory as its source. There is
 - **Nonexistent path** -> error and exit, nothing converted.
 - **File that is not `.md`/`.txt`** -> error and exit.
 
-### 8.4 Output features
+### 8.4 Drag-and-drop (`PATH...`) rules
+
+- Dragging files/folders onto the exe passes each item as a bare quoted path; no flags are added by Explorer.
+- Every item is processed in order. A bad item (wrong extension, missing path, empty folder) prints one error line and the rest still convert; exit code is 1 if anything failed, 0 otherwise.
+- Combining dropped paths with `--target` is an error. `--kicker` works from the command line in either mode.
+
+### 8.5 Output features
 
 - **Self-contained** -- each HTML includes all CSS and JS inline; no external dependencies.
 - **Three palettes** -- Regular (default), Monochrome, and Solarized.
@@ -311,7 +318,7 @@ Every generated `.html` is written in the same directory as its source. There is
 - **System preference** -- detects `prefers-color-scheme` on load.
 - **Responsive** -- adapts below 620px viewport.
 
-### 8.5 Markdown features
+### 8.6 Markdown features
 
 | Syntax | Output |
 |---|---|
@@ -326,7 +333,7 @@ Every generated `.html` is written in the same directory as its source. There is
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |
 | `--- ... ---` at file start | YAML front matter (skipped silently) |
 
-### 8.6 Examples
+### 8.7 Examples
 
 ```bash
 # Convert every .md and .txt in the current directory
@@ -342,6 +349,9 @@ foton-md-html-converter-x64 --target c:\docs
 
 # With a kicker label on every page
 foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
+
+# Mixed files and folders as bare paths (drag-and-drop style)
+foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme.txt"
 ```
 
 ---

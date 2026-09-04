@@ -22,7 +22,7 @@ Every generated `.html` file **always** lands in the same directory as its sourc
 ## 2. Usage
 
 ```bash
-foton-md-html-converter-x64 [--target <path>] [--kicker <text>]
+foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 ```
 
 All arguments are optional.
@@ -31,6 +31,7 @@ All arguments are optional.
 |---|---|---|
 | `--target <path>` | *(current directory)* | Path to a single `.md`/`.txt` file **or** a directory to convert. Trailing slashes are ignored. When absent, every `.md` and `.txt` in the current directory is converted. |
 | `--kicker <text>` | *(empty)* | Small uppercase label shown above the title on every content page (e.g. "REST API", "Knowledge Base"). Omitted if empty. |
+| `PATH...` | *(none)* | One or more files and/or folders to convert, as bare paths. This is what Windows drag-and-drop onto the exe produces. Cannot be combined with `--target`. |
 
 **Output goes into the same folder as the source files.** There are no hardcoded paths and no output-directory argument.
 
@@ -40,6 +41,7 @@ All arguments are optional.
 |---|---|---|
 | `--target <path>` | optional | Path to a single `.md`/`.txt` file **or** a directory. A directory (trailing slash optional) converts every `.md` and `.txt` inside it. Default: convert every `.md` and `.txt` in the current working directory. |
 | `--kicker <text>` | optional | Kicker text shown above the title on each page. Omitted if empty. |
+| `PATH...` | optional | Files and/or folders to convert (drag-and-drop). Files are validated for `.md`/`.txt`; directories are scanned like `--target`. |
 
 ### `--target` path rules
 
@@ -49,6 +51,15 @@ All arguments are optional.
 - **Folder** (e.g. `C:\docs\` or `c:\docs`) -> every `.md` and `.txt` in that folder is converted, each HTML written beside its source.
 - **Nonexistent path** -> clear error and the script exits without converting anything.
 - **Existing file that is not `.md` or `.txt`** -> clear error and the script exits without converting anything.
+
+### Drag-and-drop (`PATH...`) rules
+
+Dropping files or folders onto the exe passes each item as a bare quoted path:
+
+- Every dropped item is processed in order; one bad item (wrong extension, missing path, empty folder) is reported as an error line but does not stop the rest.
+- The exit code is 1 if any item failed, 0 if all converted.
+- Combining dropped paths with `--target` is an error: pick one input mode.
+- `--kicker` cannot be passed by drag-and-drop, but works from the command line in either mode.
 
 ## 4. Markdown features
 
@@ -81,6 +92,9 @@ foton-md-html-converter-x64 --target c:\docs
 
 # With a kicker label on the generated pages
 foton-md-html-converter-x64 --target C:\docs\ --kicker "Product Docs"
+
+# Mixed files and folders as bare paths (what drag-and-drop produces)
+foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme.txt"
 ```
 
 ## 6. Output features

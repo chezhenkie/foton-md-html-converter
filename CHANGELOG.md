@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Drag-and-drop support: files and/or folders dropped onto the exe arrive as
+  bare positional paths and are converted in order. A bad item (wrong
+  extension, missing path, empty folder) prints one error line and the rest
+  still convert; the exit code is 1 if anything failed. Positional paths and
+  `--target` are mutually exclusive.
+
 ### Performance
 
 - The page shell (about 21 KB of embedded CSS/JS) is assembled once per
