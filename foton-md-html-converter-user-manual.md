@@ -14,9 +14,9 @@ and drop them onto `foton-md-html-converter-x64.exe`.
 - Every dropped file gets its own HTML page beside it.
 - A dropped folder converts every `.md` / `.txt` file inside it (that folder
   only, no subfolders).
-- A bad item (wrong file type, missing file, empty folder) produces one error
-  line but does not stop the rest. If anything failed, the tool exits with an
-  error code when done.
+- A bad item (wrong file type, missing file, empty folder) is skipped; the
+  rest still convert. No window or text appears — the tool simply runs and
+  finishes.
 - The drag-and-drop mode cannot pass a kicker label; use the command line if
   you want one.
 
@@ -27,6 +27,10 @@ same folder as the exe. Handy for keeping the exe in your documents folder
 and dropping fresh notes next to it.
 
 ## Command line
+
+The tool is silent: it opens no console window and prints nothing. It does
+set an exit code scripts can read — 0 when everything converted, 1 when
+anything failed.
 
     foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 

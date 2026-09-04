@@ -35,11 +35,5 @@ pub fn convert_file(md_file: &Path, kicker: Option<&str>) -> Result<(), String> 
     fs::write(&out_file, page)
         .map_err(|e| format!("Failed to write {}: {}", out_file.display(), e))?;
 
-    let out_name = out_file
-        .file_name()
-        .and_then(|s| s.to_str())
-        .unwrap_or("unknown");
-    println!("  {}  ->  {}", out_name, out_file.display());
-
     Ok(())
 }

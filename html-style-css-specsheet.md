@@ -305,7 +305,7 @@ Every generated `.html` is written in the same directory as its source. There is
 ### 8.4 Drag-and-drop (`PATH...`) rules
 
 - Dragging files/folders onto the exe passes each item as a bare quoted path; no flags are added by Explorer.
-- Every item is processed in order. A bad item (wrong extension, missing path, empty folder) prints one error line and the rest still convert; exit code is 1 if anything failed, 0 otherwise.
+- Every item is processed in order. A bad item (wrong extension, missing path, empty folder) is skipped silently and the rest still convert; exit code is 1 if anything failed, 0 otherwise.
 - Combining dropped paths with `--target` is an error. `--kicker` works from the command line in either mode.
 
 ### 8.5 Output features

@@ -6,9 +6,16 @@
 
 - Drag-and-drop support: files and/or folders dropped onto the exe arrive as
   bare positional paths and are converted in order. A bad item (wrong
-  extension, missing path, empty folder) prints one error line and the rest
-  still convert; the exit code is 1 if anything failed. Positional paths and
+  extension, missing path, empty folder) is skipped and the rest still
+  convert; the exit code is 1 if anything failed. Positional paths and
   `--target` are mutually exclusive.
+
+### Changed
+
+- The release exe is built as a Windows GUI program: no console window opens
+  (the blue console flash on drag-and-drop is gone) and no CLI output is
+  printed in any mode. Success or failure is signalled through the exit code
+  only. Debug builds keep the console.
 
 ### Performance
 

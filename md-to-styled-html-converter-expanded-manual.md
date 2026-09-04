@@ -35,6 +35,8 @@ All arguments are optional.
 
 **Output goes into the same folder as the source files.** There are no hardcoded paths and no output-directory argument.
 
+**No console output.** The release exe is a Windows GUI program: launching it opens no console window and it prints nothing, in any mode. Success and failure are signalled only through the exit code (0 = all converted, 1 = at least one failure) and by the appearance of the `.html` files themselves.
+
 ## 3. Flags
 
 | Flag | Type | Meaning |
@@ -56,7 +58,7 @@ All arguments are optional.
 
 Dropping files or folders onto the exe passes each item as a bare quoted path:
 
-- Every dropped item is processed in order; one bad item (wrong extension, missing path, empty folder) is reported as an error line but does not stop the rest.
+- Every dropped item is processed in order; one bad item (wrong extension, missing path, empty folder) is skipped silently and the rest still convert.
 - The exit code is 1 if any item failed, 0 if all converted.
 - Combining dropped paths with `--target` is an error: pick one input mode.
 - `--kicker` cannot be passed by drag-and-drop, but works from the command line in either mode.
