@@ -14,7 +14,6 @@ REPO-HANDOVER-MANUAL.md
 foton-md-html-converter-x64
 
 # Generated / runtime files (root HTML pages are converter output, never tracked)
-docs/
 /*.html
 readme.html
 handoff-tmp.txt
