@@ -15,8 +15,8 @@ and drop them onto `foton-md-html-converter-x64.exe`.
 - A dropped folder converts every `.md` / `.txt` file inside it (that folder
   only, no subfolders).
 - A bad item (wrong file type, missing file, empty folder) is skipped; the
-  rest still convert. No window or text appears — the tool simply runs and
-  finishes.
+  rest still convert. On Windows no window or text appears; on Linux errors
+  are printed to the terminal.
 - The drag-and-drop mode cannot pass a kicker label; use the command line if
   you want one.
 
@@ -28,9 +28,10 @@ and dropping fresh notes next to it.
 
 ## Command line
 
-The tool is silent: it opens no console window and prints nothing. It does
-set an exit code scripts can read — 0 when everything converted, 1 when
-anything failed.
+The Windows exe is a windowless GUI program: it opens no console and prints
+nothing in any mode. The Linux build is a normal terminal tool and prints
+progress and error lines. Both set an exit code scripts can read — 0 when
+everything converted, 1 when anything failed.
 
     foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 

@@ -12,10 +12,12 @@
 
 ### Changed
 
-- The release exe is built as a Windows GUI program: no console window opens
-  (the blue console flash on drag-and-drop is gone) and no CLI output is
-  printed in any mode. Success or failure is signalled through the exit code
-  only. Debug builds keep the console.
+- The Windows release exe is built as a Windows GUI program: no console
+  window opens (the blue console flash on drag-and-drop is gone) and no CLI
+  output is printed in any Windows build. The Linux build keeps normal
+  terminal output (`out!`/`err!` macros compile to nothing on Windows).
+  Success or failure is signalled through the exit code on both platforms.
+  Debug Windows builds keep the console.
 
 ### Performance
 

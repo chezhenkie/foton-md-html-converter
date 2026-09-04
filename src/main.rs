@@ -1,6 +1,7 @@
 #![cfg_attr(all(windows, not(debug_assertions)), windows_subsystem = "windows")]
 
 use clap::Parser;
+use foton_md_html_converter::{err, out};
 use std::path::{Path, PathBuf};
 use std::process;
 
@@ -31,16 +32,27 @@ struct Args {
 fn convert_directory(dir: &Path, kicker: Option<&str>) {
     let md_files = match foton_md_html_converter::io::files::collect_source_files(dir) {
         Ok(files) => files,
-        Err(_) => process::exit(1),
+        Err(e) => {
+            err!("Error: cannot read directory {}: {}", dir.display(), e);
+            process::exit(1);
+        }
     };
     if md_files.is_empty() {
+        err!("No .md or .txt files found in {}", dir.display());
         process::exit(1);
     }
+    out!(
+        "Converting {} .md/.txt file(s) in {}",
+        md_files.len(),
+        dir.display()
+    );
     for md_file in md_files {
-        if foton_md_html_converter::io::convert::convert_file(&md_file, kicker).is_err() {
+        if let Err(e) = foton_md_html_converter::io::convert::convert_file(&md_file, kicker) {
+            err!("{}", e);
             process::exit(1);
         }
     }
+    out!("\nDone: {}", dir.display());
 }
 
 fn convert_paths(paths: &[PathBuf], kicker: Option<&str>) {
@@ -55,15 +67,28 @@ fn convert_paths(paths: &[PathBuf], kicker: Option<&str>) {
         if path.is_dir() {
             match foton_md_html_converter::io::files::collect_source_files(&path) {
                 Ok(files) if !files.is_empty() => {
+                    out!(
+                        "Converting {} .md/.txt file(s) in {}",
+                        files.len(),
+                        path.display()
+                    );
                     for md_file in files {
-                        if foton_md_html_converter::io::convert::convert_file(&md_file, kicker)
-                            .is_err()
+                        if let Err(e) =
+                            foton_md_html_converter::io::convert::convert_file(&md_file, kicker)
                         {
+                            err!("{}", e);
                             failed += 1;
                         }
                     }
                 }
-                Ok(_) | Err(_) => failed += 1,
+                Ok(_) => {
+                    err!("No .md or .txt files found in {}", path.display());
+                    failed += 1;
+                }
+                Err(e) => {
+                    err!("Error: cannot read directory {}: {}", path.display(), e);
+                    failed += 1;
+                }
             }
         } else if path.is_file() {
             let ext = path
@@ -72,20 +97,26 @@ fn convert_paths(paths: &[PathBuf], kicker: Option<&str>) {
                 .map(|s| s.to_lowercase())
                 .unwrap_or_default();
             if ext != "md" && ext != "txt" {
+                err!("Error: not a .md or .txt file: {}", path.display());
                 failed += 1;
                 continue;
             }
-            if foton_md_html_converter::io::convert::convert_file(&path, kicker).is_err() {
+            out!("Converting single file");
+            if let Err(e) = foton_md_html_converter::io::convert::convert_file(&path, kicker) {
+                err!("{}", e);
                 failed += 1;
             }
         } else {
+            err!("Error: path not found: {}", path.display());
             failed += 1;
         }
     }
 
     if failed > 0 {
+        err!("\nDone with {} error(s)", failed);
         process::exit(1);
     }
+    out!("\nDone: {} path(s)", paths.len());
 }
 
 fn main() {
@@ -95,6 +126,7 @@ fn main() {
 
     if !args.files.is_empty() {
         if args.target.is_some() {
+            err!("Error: give either positional paths or --target, not both");
             process::exit(1);
         }
         convert_paths(&args.files, kicker);
@@ -118,12 +150,18 @@ fn main() {
                     .map(|s| s.to_lowercase())
                     .unwrap_or_default();
                 if ext != "md" && ext != "txt" {
+                    err!("Error: not a .md or .txt file: {}", target.display());
                     process::exit(1);
                 }
-                if foton_md_html_converter::io::convert::convert_file(&target, kicker).is_err() {
+                out!("Converting single file");
+                if let Err(e) = foton_md_html_converter::io::convert::convert_file(&target, kicker)
+                {
+                    err!("{}", e);
                     process::exit(1);
                 }
+                out!("\nDone: 1 file");
             } else {
+                err!("Error: path not found: {}", target.display());
                 process::exit(1);
             }
         }

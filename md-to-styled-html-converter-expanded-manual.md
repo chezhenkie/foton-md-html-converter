@@ -35,7 +35,7 @@ All arguments are optional.
 
 **Output goes into the same folder as the source files.** There are no hardcoded paths and no output-directory argument.
 
-**No console output.** The release exe is a Windows GUI program: launching it opens no console window and it prints nothing, in any mode. Success and failure are signalled only through the exit code (0 = all converted, 1 = at least one failure) and by the appearance of the `.html` files themselves.
+**No console output on Windows.** The Windows release exe is a GUI program: launching it opens no console window and it prints nothing, in any mode. The Linux build prints progress and error lines like a normal terminal tool. On both platforms success and failure are signalled through the exit code (0 = all converted, 1 = at least one failure) and by the appearance of the `.html` files themselves.
 
 ## 3. Flags
 
