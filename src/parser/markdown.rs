@@ -7,7 +7,30 @@ static UL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-*]\s+").unwrap(
 static OL_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^(\d+)\.\s+(.+)$").unwrap());
 static SEP_RE: LazyLock<Regex> = LazyLock::new(|| Regex::new(r"^[-:]+$").unwrap());
 
+fn strip_bom(md: &str) -> &str {
+    md.strip_prefix('\u{feff}').unwrap_or(md)
+}
+
+fn is_hr(line: &str) -> bool {
+    let Some(c) = line.chars().next() else {
+        return false;
+    };
+    if !matches!(c, '-' | '*' | '_') {
+        return false;
+    }
+    let mut count = 1;
+    for ch in line.chars().skip(1) {
+        match ch {
+            _ if ch == c => count += 1,
+            ' ' | '\t' => {}
+            _ => return false,
+        }
+    }
+    count >= 3
+}
+
 pub fn extract_lede(md: &str) -> Option<String> {
+    let md = strip_bom(md);
     let lines: Vec<&str> = md.split('\n').collect();
     if lines.first() != Some(&"---") {
         return None;
@@ -25,6 +48,7 @@ pub fn extract_lede(md: &str) -> Option<String> {
 }
 
 pub fn md_to_html(md: &str) -> String {
+    let md = strip_bom(md);
     let lines: Vec<&str> = md.split('\n').collect();
     let mut html_parts: Vec<String> = Vec::new();
     let mut i = 0;
@@ -104,7 +128,7 @@ pub fn md_to_html(md: &str) -> String {
             continue;
         }
 
-        if stripped == "---" || stripped == "***" || stripped == "___" {
+        if is_hr(stripped) {
             close_lists(&mut in_ul, &mut in_ol, &mut html_parts);
             close_table(&mut in_table, &mut html_parts);
             i += 1;
@@ -148,6 +172,10 @@ pub fn md_to_html(md: &str) -> String {
             }
 
             if !in_table {
+                if cells.iter().all(|c| SEP_RE.is_match(c)) {
+                    i += 1;
+                    continue;
+                }
                 in_table = true;
                 let ths: String = cells
                     .iter()
@@ -316,6 +344,31 @@ mod tests {
     }
 
     #[test]
+    fn horizontal_rule_variants_are_ignored() {
+        assert_eq!(md_to_html("----"), "");
+        assert_eq!(md_to_html("- - -"), "");
+        assert_eq!(md_to_html("*****"), "");
+        assert_eq!(md_to_html("____"), "");
+        assert_eq!(md_to_html("--"), "<p>--</p>");
+    }
+
+    #[test]
+    fn separator_only_first_table_line_is_skipped() {
+        let input = "|---|---|\n| a | b |";
+        assert_eq!(
+            md_to_html(input),
+            "<table><thead><tr><th>a</th><th>b</th></tr></thead><tbody>\n</tbody></table>"
+        );
+    }
+
+    #[test]
+    fn utf8_bom_is_ignored() {
+        let input = "\u{feff}---\nlede: Hi\n---\n# Hello\n";
+        assert_eq!(md_to_html(input), "<h1>Hello</h1>");
+        assert_eq!(extract_lede(input), Some("Hi".to_string()));
+    }
+
+    #[test]
     fn special_characters_are_escaped() {
         assert_eq!(
             md_to_html("5 < 10 and 10 > 5"),
@@ -358,7 +411,7 @@ mod tests {
     fn svg_fence_is_treated_as_plain_code_block() {
         let input = "```svg\n<svg viewBox=\"0 0 100 20\"><rect x=\"5\" y=\"5\" width=\"90\" height=\"10\"/></svg>\n```";
         let output = md_to_html(input);
-        assert!(output.contains("&lt;svg viewBox=\"0 0 100 20\"&gt;"));
+        assert!(output.contains("&lt;svg viewBox=&quot;0 0 100 20&quot;&gt;"));
         assert!(output.contains("&lt;/svg&gt;"));
         assert!(!output.contains("<svg"));
         assert!(!output.contains("diagram"));

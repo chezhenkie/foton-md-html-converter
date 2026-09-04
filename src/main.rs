@@ -1,11 +1,11 @@
 use clap::Parser;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process;
 
 #[derive(Parser)]
 #[command(
     name = "foton-md-html-converter-x64",
-    about = "Convert markdown to styled HTML (v7)",
+    about = "Convert markdown to styled HTML",
     long_about = "HTML always lands in the same directory as its source .md file."
 )]
 struct Args {
@@ -17,6 +17,32 @@ struct Args {
 
     #[arg(long, help = "Kicker text shown above the title on each page")]
     kicker: Option<String>,
+}
+
+fn convert_directory(dir: &Path, kicker: Option<&str>) {
+    let md_files = match foton_md_html_converter::io::files::collect_source_files(dir) {
+        Ok(files) => files,
+        Err(e) => {
+            eprintln!("Error: cannot read directory {}: {}", dir.display(), e);
+            process::exit(1);
+        }
+    };
+    if md_files.is_empty() {
+        eprintln!("No .md or .txt files found in {}", dir.display());
+        process::exit(1);
+    }
+    println!(
+        "Converting {} .md/.txt file(s) in {}",
+        md_files.len(),
+        dir.display()
+    );
+    for md_file in md_files {
+        if let Err(e) = foton_md_html_converter::io::convert::convert_file(&md_file, kicker) {
+            eprintln!("{}", e);
+            process::exit(1);
+        }
+    }
+    println!("\nDone: {}", dir.display());
 }
 
 fn main() {
@@ -31,25 +57,7 @@ fn main() {
             let target = PathBuf::from(trimmed);
 
             if target.is_dir() {
-                let md_files = foton_md_html_converter::io::files::collect_source_files(&target);
-                if md_files.is_empty() {
-                    eprintln!("No .md or .txt files found in {}", target.display());
-                    process::exit(1);
-                }
-                println!(
-                    "Converting {} .md/.txt file(s) in {}",
-                    md_files.len(),
-                    target.display()
-                );
-                for md_file in md_files {
-                    if let Err(e) =
-                        foton_md_html_converter::io::convert::convert_file(&md_file, kicker)
-                    {
-                        eprintln!("{}", e);
-                        process::exit(1);
-                    }
-                }
-                println!("\nDone: {}", target.display());
+                convert_directory(&target, kicker);
             } else if target.is_file() {
                 let ext = target
                     .extension()
@@ -74,24 +82,7 @@ fn main() {
         }
         None => {
             let cwd = std::env::current_dir().expect("Failed to get current directory");
-            let md_files = foton_md_html_converter::io::files::collect_source_files(&cwd);
-            if md_files.is_empty() {
-                eprintln!("No .md or .txt files found in {}", cwd.display());
-                process::exit(1);
-            }
-            println!(
-                "Converting {} .md/.txt file(s) in {}",
-                md_files.len(),
-                cwd.display()
-            );
-            for md_file in md_files {
-                if let Err(e) = foton_md_html_converter::io::convert::convert_file(&md_file, kicker)
-                {
-                    eprintln!("{}", e);
-                    process::exit(1);
-                }
-            }
-            println!("\nDone: {}", cwd.display());
+            convert_directory(&cwd, kicker);
         }
     }
 }
