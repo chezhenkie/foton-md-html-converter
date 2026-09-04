@@ -8,10 +8,8 @@ REPO-HANDOVER-MANUAL.md
 # Rust build artifacts
 /target
 
-# Release binaries and archives
-*.exe
+# Archives
 *.zip
-foton-md-html-converter-x64
 
 # Generated / runtime files (root HTML pages are converter output, never tracked)
 /*.html
