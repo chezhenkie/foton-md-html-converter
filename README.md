@@ -1,0 +1,142 @@
+# Markdown to styled HTML
+
+`foton-md-html-converter` reads Markdown and plain text files and writes a finished HTML page for each one. The page is a single self-contained file: styles, scripts, toolbar and palettes are inside it, so it opens from a local folder or a share without fetching anything. The HTML lands in the same folder as its source. The converter is a native binary with no runtime, package manager or configuration file.
+
+- Input comes from a drop, one `--target` file or folder, or the current folder.
+- Three palettes, each in light and dark, with brightness and saturation controls on a fixed toolbar.
+- Font stacks follow the host OS, with no webfonts and no external requests.
+- The Markdown subset covers headings, emphasis, inline code, links, tables, lists, callouts and fenced code.
+- The Windows release build is a silent GUI program; the Linux build prints progress. Both report through exit codes.
+
+## Page
+
+The toolbar sits in the top right corner of every generated page and works offline.
+
+| Control | Behavior |
+|---|---|
+| Mode | Light or dark. The page starts from the OS `prefers-color-scheme` setting; after that the switch is manual. |
+| Font | Serif or sans. Italics and code keep their own faces. A palette change resets the font to that palette's default. |
+| Palette | Regular, Mono or Solarized. Mono disables the saturation slider. |
+| Brightness | Seven steps from -3 to +3, 8 percent per step. |
+| Saturation | Seven steps from -3 to +3, 15 percent per step. |
+
+Nothing is stored. A reload returns the page to the OS mode and the default palette, font and slider positions.
+
+## Requirements
+
+The converter is one executable per platform and needs no interpreter, package manager or network access. The page it writes needs only a browser.
+
+| Platform | File | Notes |
+|---|---|---|
+| Windows x86_64 | `foton-md-html-converter-x64.exe` | GUI subsystem, no console window |
+| Linux x86_64 | `foton-md-html-converter-linux-x64` | static musl, runs on any x86_64 distribution |
+
+Building from source needs Rust 1.98.0 and the targets pinned in `rust-toolchain.toml`.
+
+## Install
+
+The two builds are committed at the repository root, and every CI run uploads a build of each target as an artifact. Copy the binary anywhere; there is nothing to install.
+
+```sh
+git clone https://github.com/chezhenkie/foton-md-html-converter.git
+chmod +x foton-md-html-converter/foton-md-html-converter-linux-x64
+```
+
+The `chmod` is for Linux; the Windows file runs as it is.
+
+## Use
+
+| Launch | Scope |
+|---|---|
+| Drop files or folders onto the exe | every dropped item, in order |
+| Double-click the exe | the current folder, which Explorer sets to the folder holding the exe |
+| `--target <path>` | one `.md` or `.txt` file, or one folder |
+| `PATH...` | bare paths, the same input a drop produces |
+
+A folder is scanned one level deep for `.md` and `.txt`, case-insensitive. A dropped item that is missing, has another extension or is an empty folder counts as a failure and the remaining items still convert.
+
+```text
+foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
+```
+
+| Argument | Meaning |
+|---|---|
+| `--target <path>` | One `.md`/`.txt` file or one folder. A bad target exits 1 before anything is converted. |
+| `--kicker <text>` | Label above the page title, for example `--kicker "Product Docs"`. Omitted when empty. A drop cannot pass it. |
+| `PATH...` | One or more files or folders. Mutually exclusive with `--target`; combining them exits 1. |
+
+```sh
+# every .md and .txt in the current folder
+foton-md-html-converter-x64
+
+# one file, HTML beside it
+foton-md-html-converter-x64 --target C:\docs\notes.md
+
+# one folder with a kicker
+foton-md-html-converter-x64 --target C:\docs --kicker "Product Docs"
+
+# mixed files and folders, as produced by a drop
+foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme.txt"
+```
+
+A source keeps its name and gets a `.html` beside it: `notes.md` becomes `notes.html`. An existing page of that name is replaced; the source is never modified.
+
+The page title is the source file name without its extension, and the six filenames `01-containers.md` through `06-client-utilities.md` keep fixed titles. A `lede:` line in YAML front matter becomes the italic line under the kicker, and `--kicker` supplies the label above it. A `#` heading in the body is rendered below the page title, so start body headings at `##`.
+
+The Windows exe opens no console and prints nothing in any mode; success is reported by the exit code and by the files it writes. The Linux build prints the folder, one line per converted file and an error line per failure. Both return 0 when every input converted and 1 when any failed.
+
+## Markdown
+
+| Syntax | Result |
+|---|---|
+| `#` to `######` | Heading; `##` gets an automatic section number |
+| `**bold**`, `*italic*`, `***both***` | `<strong>`, `<em>`, combined |
+| `` `code` `` | Inline `<code>` |
+| Fenced block, optional language tag | Escaped code in `<pre><code>`, language kept as a class |
+| `[text](url)` | Link |
+| `\| ... \|` | Table; the first row is the header, a separator row is dropped |
+| `- item`, `* item`, `1. item` | Unordered or ordered list |
+| `> text` | Callout box |
+| `---`, `***`, `___` | Horizontal rule, consumed |
+| `--- ... ---` at the start | YAML front matter, skipped; `lede:` becomes the lede |
+
+## Files
+
+| Path | Purpose |
+|---|---|
+| `src/main.rs` | Command line, input modes, exit codes |
+| `src/lib.rs` | Module tree and the per-platform output macros |
+| `src/parser/` | Block parser and inline formatting |
+| `src/html/` | Page assembly and toolbar markup |
+| `src/css/`, `src/js/` | Embedded page styles and scripts |
+| `src/io/` | Folder scan and per-file conversion |
+| `build.rs` | Windows version resource and icon |
+| `docs/` | Specsheet, manuals and benchmark |
+| `.github/workflows/build.yml` | Format, lint, test and both builds |
+
+## Check
+
+Run from the repository root:
+
+```sh
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+```
+
+The suite has 38 tests covering the parser, escaping, page assembly and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
+
+## Limits
+
+- Output is always beside the source. There is no output directory.
+- One folder level is scanned; subfolders are ignored.
+- A paragraph is one source line. Hard-wrapped text becomes a series of paragraphs.
+- Nested lists flatten to one level. Images, reference links, footnotes and underscore emphasis are outside the parser.
+- Fenced blocks render as escaped code; there is no diagram rendering.
+- Settings are per view and reset on reload. The page stores nothing.
+- Prebuilt files cover x86_64 Windows and Linux. There is no macOS or ARM build.
+- A Windows shell does not wait for a GUI program. Scripts start the exe with `Start-Process -Wait` or `start /wait` before reading the exit code.
+
+## License
+
+MIT. See [LICENSE](LICENSE).
