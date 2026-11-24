@@ -20,7 +20,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: foton-md-html-converter-linux-musl
-          path: target/x86_64-unknown-linux-musl/release/foton-md-html-converter-x64
+          path: src/target/x86_64-unknown-linux-musl/release/foton-md-html-converter-x64
           # Without this the artifact inherits the repo default of 90 days and
           # every PR run piles up against the 500 MB account quota.
           retention-days: 7
@@ -40,5 +40,5 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: foton-md-html-converter-windows
-          path: target/release/foton-md-html-converter-x64.exe
+          path: src/target/release/foton-md-html-converter-x64.exe
           retention-days: 7

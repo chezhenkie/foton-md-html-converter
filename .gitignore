@@ -6,7 +6,7 @@ agents.md
 REPO-HANDOVER-MANUAL.md
 
 # Rust build artifacts
-/target
+/src/target
 
 # Archives
 *.zip

@@ -153,8 +153,8 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 
 | Target | Command | Binary |
 |---|---|---|
-| Windows (MSVC) | `cargo build --release` | `target/release/foton-md-html-converter-x64.exe` |
-| Linux (musl, static) | `cargo build --release --target x86_64-unknown-linux-musl` | `target/x86_64-unknown-linux-musl/release/foton-md-html-converter-x64` |
+| Windows (MSVC) | `cargo build --release` | `src/target/release/foton-md-html-converter-x64.exe` |
+| Linux (musl, static) | `cargo build --release --target x86_64-unknown-linux-musl` | `src/target/x86_64-unknown-linux-musl/release/foton-md-html-converter-x64` |
 
 ### Current status
 
@@ -168,9 +168,9 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 
 The Windows `.exe` includes a VERSIONINFO resource that populates the Details tab in File Properties (company, product name, version, copyright, file description). This is a PE format feature -- Linux ELF binaries have no equivalent.
 
-The resource is embedded at build time by `build.rs` using the `winresource` crate. When building the `x86_64-pc-windows-gnu` target, `winresource` calls `x86_64-w64-mingw32-windres` (from the MinGW toolchain in WSL) to compile the resource and link it into the binary. The Linux musl build skips this step.
+The resource is embedded at build time by `src/build.rs` using the `winresource` crate. When building the `x86_64-pc-windows-gnu` target, `winresource` calls `x86_64-w64-mingw32-windres` (from the MinGW toolchain in WSL) to compile the resource and link it into the binary. The Linux musl build skips this step.
 
-To update metadata: edit the `set()` calls in `build.rs`, rebuild with `cargo build --release --target x86_64-pc-windows-gnu` inside WSL, and copy the exe from `target/x86_64-pc-windows-gnu/release/` to the project root.
+To update metadata: edit the `set()` calls in `src/build.rs`, rebuild with `cargo build --release --target x86_64-pc-windows-gnu` inside WSL, and copy the exe from `src/target/x86_64-pc-windows-gnu/release/` into `dist/`.
 
 ### Linux musl build
 

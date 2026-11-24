@@ -38,7 +38,7 @@ Building from source needs Rust 1.98.0 and the targets pinned in `rust-toolchain
 
 ## Install
 
-The two builds are committed at the repository root and attached to the latest release, and every CI run uploads a build of each target as an artifact. Copy the binary anywhere; there is nothing to install.
+The two builds are committed in `dist/` and attached to the latest release, and every CI run uploads a build of each target as an artifact. Copy the binary anywhere; there is nothing to install.
 
 ```sh
 git clone https://github.com/chezhenkie/foton-md-html-converter.git
