@@ -2,10 +2,10 @@
 
 ![version 1.3.1](https://img.shields.io/badge/version-1.3.1-blue) ![platforms Windows, Linux](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-blue) ![license MIT](https://img.shields.io/badge/license-MIT-blue)
 
-`foton-md-html-converter` reads Markdown and plain text files and writes a finished HTML page for each one. The page is a single self-contained file: styles, scripts, toolbar and palettes are inside it, so it opens from a local folder or a share without fetching anything. The HTML lands in the same folder as its source. The converter is a native binary with no runtime, package manager or configuration file.
+`foton-md-html-converter` reads Markdown and plain text files and writes a finished HTML page for each one. The page is a single self-contained file: styles, scripts, toolbar and themes are inside it, so it opens from a local folder or a share without fetching anything. The HTML lands in the same folder as its source. The converter is a native binary with no runtime, package manager or configuration file.
 
 - Input comes from a drop, one `--target` file or folder, or the current folder.
-- Three palettes, each in light and dark, with brightness and saturation controls on a fixed toolbar.
+- Nine themes, five dark and four light, with brightness and saturation controls on a fixed toolbar.
 - Font stacks follow the host OS, with no webfonts and no external requests.
 - The Markdown subset covers headings, emphasis, inline code, links, tables, lists, callouts and fenced code.
 - The Windows release build is a silent GUI program; the Linux build prints progress. Both report through exit codes.
@@ -16,13 +16,14 @@ The toolbar sits in the top right corner of every generated page and works offli
 
 | Control | Behavior |
 |---|---|
+| Print friendly | White page, black ink, no toolbar in the printout. Selecting a theme or flipping the mode switch ends it. |
 | Mode | Light or dark. The page starts from the OS `prefers-color-scheme` setting; after that the switch is manual. |
-| Font | Serif or sans. Italics and code keep their own faces. A palette change resets the font to that palette's default. |
-| Palette | Regular, Mono or Solarized. Mono disables the saturation slider. |
+| Font | Serif or sans. Every theme opens sans; a theme change keeps the chosen font. Code and table header labels keep their own faces. |
+| Themes | A `dark theme` menu of five names and a `light theme` menu of four. Picking one applies it and switches to that mode; each mode keeps its own pick. |
 | Brightness | Seven steps from -3 to +3, 8 percent per step. |
 | Saturation | Seven steps from -3 to +3, 15 percent per step. |
 
-Nothing is stored. A reload returns the page to the OS mode and the default palette, font and slider positions.
+Nothing is stored. A reload returns the page to the OS mode, the github and vercel defaults, sans and 0/0.
 
 ## Requirements
 
@@ -64,7 +65,7 @@ foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 | Argument | Meaning |
 |---|---|
 | `--target <path>` | One `.md`/`.txt` file or one folder. A bad target exits 1 before anything is converted. |
-| `--kicker <text>` | Label above the page title, for example `--kicker "Product Docs"`. Omitted when empty. A drop cannot pass it. |
+| `--kicker <text>` | Label above the document body, for example `--kicker "Product Docs"`. Omitted when empty. A drop cannot pass it. |
 | `PATH...` | One or more files or folders. Mutually exclusive with `--target`; combining them exits 1. |
 
 ```sh
@@ -83,7 +84,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 
 A source keeps its name and gets a `.html` beside it: `notes.md` becomes `notes.html`. An existing page of that name is replaced; the source is never modified.
 
-The page title is the source file name without its extension, and the six filenames `01-containers.md` through `06-client-utilities.md` keep fixed titles. A `lede:` line in YAML front matter becomes the italic line under the kicker, and `--kicker` supplies the label above it. A `#` heading in the body is rendered below the page title, so start body headings at `##`.
+The browser tab title is the source file name without its extension, and the six filenames `01-containers.md` through `06-client-utilities.md` keep fixed titles. A `lede:` line in YAML front matter becomes the italic line under the kicker, and `--kicker` supplies the label above it. The converter injects no heading: the body is the Markdown as written, so a `#` heading is the document's visible title.
 
 The Windows exe opens no console and prints nothing in any mode; success is reported by the exit code and by the files it writes. The Linux build prints the folder, one line per converted file and an error line per failure. Both return 0 when every input converted and 1 when any failed.
 
@@ -126,7 +127,7 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-The suite has 38 tests covering the parser, escaping, page assembly and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
+The suite has 40 tests covering the parser, escaping, page assembly, toolbar controls and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
 
 ## Limits
 

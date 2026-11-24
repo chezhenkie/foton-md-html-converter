@@ -27,6 +27,7 @@ static PAGE_HEAD_REST: LazyLock<String> = LazyLock::new(|| {
 {}
 </style>
 <script>{}</script>
+<script>{}</script>
 </head>
 <body>
 {}
@@ -37,6 +38,7 @@ static PAGE_HEAD_REST: LazyLock<String> = LazyLock::new(|| {
         css::THEME_CSS,
         css::CONTENT_CSS,
         js::OS_DETECT_JS,
+        js::THEME_BOOT_JS,
         TOOLBAR_HTML
     )
 });
@@ -68,7 +70,7 @@ pub fn build_page(title: &str, lede: &str, body_html: &str, kicker: Option<&str>
         format!("<p class=\"lede\">{}</p>\n", escape_html(lede))
     };
 
-    let header_html = format!("{}{}<h1>{}</h1>", kicker_html, lede_html, title);
+    let header_html = format!("{}{}", kicker_html, lede_html);
 
     let mut page = String::with_capacity(
         PAGE_PRE.len()
@@ -97,7 +99,6 @@ mod tests {
     fn title_and_kicker_are_escaped() {
         let page = build_page("a&b<title>", "", "", Some("k<i>cker & co"));
         assert!(page.contains("<title>a&amp;b&lt;title&gt;</title>"));
-        assert!(page.contains("<h1>a&amp;b&lt;title&gt;</h1>"));
         assert!(page.contains("<p class=\"kicker\">k&lt;i&gt;cker &amp; co</p>"));
     }
 
@@ -106,6 +107,12 @@ mod tests {
         let page = build_page("T", "", "<p>x</p>", None);
         assert!(!page.contains("class=\"kicker\""));
         assert!(!page.contains("class=\"lede\""));
-        assert!(page.contains("<h1>T</h1>"));
+    }
+
+    #[test]
+    fn no_heading_is_injected() {
+        let page = build_page("T", "a lede", "<h1>Mine</h1>", Some("K"));
+        assert_eq!(page.matches("<h1>").count(), 1);
+        assert!(page.contains("<h1>Mine</h1>"));
     }
 }

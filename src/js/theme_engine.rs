@@ -88,171 +88,90 @@ pub const THEME_ENGINE_JS: &str = r##"const ThemeEngine=(function(){
     return rgbToHex(rgb[0],rgb[1],rgb[2]);
   }
 
-  function adjustRgba(rgba,brightness,saturation){
-    const match=rgba.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/);
-    if(!match)return rgba;
-    let rgb=[parseInt(match[1]),parseInt(match[2]),parseInt(match[3])];
-    const alpha=match[4]!==undefined?match[4]:'1';
-    rgb=adjustBrightness(rgb,brightness);
-    rgb=adjustSaturation(rgb,saturation);
-    return'rgba('+rgb[0]+','+rgb[1]+','+rgb[2]+','+alpha+')';
+  function inkOn(hex){
+    const rgb=hexToRgb(hex);
+    const c=rgb.map(v=>{
+      const p=v/255;
+      return p<=0.04045?p/12.92:Math.pow((p+0.055)/1.055,2.4);
+    });
+    const l=0.2126*c[0]+0.7152*c[1]+0.0722*c[2];
+    return l>0.179?'#000000':'#FFFFFF';
   }
 
-  const PALETTES={
-    regular:{
-      light:{
-        '--paper':'#f4f3ef',
-        '--ink':'#2b2b2a',
-        '--ink-soft':'#575756',
-        '--espresso':'#383837',
-        '--accent':'#b08a2e',
-        '--accent-deep':'#8a6a24',
-        '--bronze':'#7a746b',
-        '--blue':'#4a6d8c',
-        '--brick':'#a84a3a',
-        '--line':'#d9d8d3',
-        '--card':'#fafaf8',
-        '--zebra':'#f7f7f4',
-        '--code-bg':'#eceae4',
-        '--pre-bg':'#343433',
-        '--shadow-color':'rgba(45,45,45,0.06)',
-        '--pre-ink':'#f2f2ef'
-      },
-      dark:{
-        '--paper':'#0a0c10',
-        '--ink':'#d0ccc0',
-        '--ink-soft':'#9a9688',
-        '--espresso':'#a8b4c8',
-        '--accent':'#4a6d8c',
-        '--accent-deep':'#5a7d9c',
-        '--bronze':'#7a8a9c',
-        '--blue':'#4a6d8c',
-        '--brick':'#8c6a6a',
-        '--line':'#1a2030',
-        '--card':'#141820',
-        '--zebra':'#1c2230',
-        '--code-bg':'#1a2030',
-        '--pre-bg':'#0a0c10',
-        '--shadow-color':'rgba(0,0,0,0.4)',
-        '--pre-ink':'#d0ccc0'
-      }
+  const THEMES={
+    dark:{
+      github:{bg:'#0D1117',card:'#010409',ink:'#C9D1D9',muted:'#8B949E',line:'#6E7681',accent:'#3B82F6'},
+      harbor:{bg:'#0F1A2B',card:'#212121',ink:'#C9C9C9',muted:'#999999',line:'#737373',accent:'#4FD1C5'},
+      solarized:{bg:'#002B36',card:'#073642',ink:'#9DB0B0',muted:'#8FA5AA',line:'#93A1A1',accent:'#D96F3C'},
+      oledblack:{bg:'#000000',card:'#1A1A1A',ink:'#EDEDED',muted:'#A8A8A8',line:'#6E6E6E',accent:'#D4D4D4'},
+      ayu:{bg:'#0B0E14',card:'#0F131A',ink:'#BFBDB6',muted:'#59C2FF',line:'#6C7380',accent:'#E6B450'}
     },
-    solarized:{
-      light:{
-        '--paper':'#fdf6e3',
-        '--ink':'#657b83',
-        '--ink-soft':'#93a1a1',
-        '--espresso':'#586e75',
-        '--accent':'#b58900',
-        '--accent-deep':'#cb4b16',
-        '--bronze':'#93a1a1',
-        '--blue':'#268bd2',
-        '--cyan':'#2aa198',
-        '--green':'#859900',
-        '--red':'#dc322f',
-        '--magenta':'#d33682',
-        '--violet':'#6c71c4',
-        '--line':'#eee8d5',
-        '--card':'#eee8d5',
-        '--zebra':'#eee8d5',
-        '--code-bg':'#eee8d5',
-        '--pre-bg':'#eee8d5',
-        '--shadow-color':'rgba(0,0,0,0.05)',
-        '--pre-ink':'#586e75'
-      },
-      dark:{
-        '--paper':'#002b36',
-        '--ink':'#839496',
-        '--ink-soft':'#586e75',
-        '--espresso':'#93a1a1',
-        '--accent':'#b58900',
-        '--accent-deep':'#cb4b16',
-        '--bronze':'#586e75',
-        '--blue':'#268bd2',
-        '--cyan':'#2aa198',
-        '--green':'#859900',
-        '--red':'#dc322f',
-        '--magenta':'#d33682',
-        '--violet':'#6c71c4',
-        '--line':'#073642',
-        '--card':'#073642',
-        '--zebra':'#073642',
-        '--code-bg':'#073642',
-        '--pre-bg':'#073642',
-        '--shadow-color':'rgba(0,0,0,0.3)',
-        '--pre-ink':'#93a1a1'
-      }
-    },
-    monochrome:{
-      light:{
-        '--paper':'#f5f5f5',
-        '--ink':'#333333',
-        '--ink-soft':'#666666',
-        '--espresso':'#222222',
-        '--accent':'#555555',
-        '--accent-deep':'#222222',
-        '--bronze':'#777777',
-        '--blue':'#555555',
-        '--brick':'#555555',
-        '--line':'#dddddd',
-        '--card':'#fafafa',
-        '--zebra':'#f0f0f0',
-        '--code-bg':'#e8e8e8',
-        '--pre-bg':'#333333',
-        '--shadow-color':'rgba(0,0,0,0.08)',
-        '--pre-ink':'#f0f0f0'
-      },
-      dark:{
-        '--paper':'#1a1a1a',
-        '--ink':'#cccccc',
-        '--ink-soft':'#999999',
-        '--espresso':'#dddddd',
-        '--accent':'#aaaaaa',
-        '--accent-deep':'#e0e0e0',
-        '--bronze':'#888888',
-        '--blue':'#aaaaaa',
-        '--brick':'#aaaaaa',
-        '--line':'#444444',
-        '--card':'#222222',
-        '--zebra':'#2a2a2a',
-        '--code-bg':'#333333',
-        '--pre-bg':'#111111',
-        '--shadow-color':'rgba(0,0,0,0.3)',
-        '--pre-ink':'#cccccc'
-      }
+    light:{
+      vercel:{bg:'#F3F3F1',card:'#FFFFFF',ink:'#20242A',muted:'#4E545C',line:'#C9CCD1',accent:'#9A6400'},
+      tokyonight:{bg:'#F3F3F1',card:'#F0F4FC',ink:'#232A3D',muted:'#4B5468',line:'#C6CEDF',accent:'#2F5BB7'},
+      cursor:{bg:'#F3F3F1',card:'#F0F7F1',ink:'#212A24',muted:'#4C5850',line:'#C5D2C7',accent:'#2A6350'},
+      orng:{bg:'#F3F3F1',card:'#FFF6EE',ink:'#2A2420',muted:'#5C4F46',line:'#DBC8B9',accent:'#B4471E'}
     }
   };
 
-  function apply(palette,mode,brightness,saturation,font){
-    palette=palette||'regular';
-    mode=mode||'light';
-    brightness=brightness||0;
-    saturation=saturation||0;
-    font=font||'sans-serif';
+  const THUMB={
+    dark:{bg:'#2E2E2E',line:'#777777'},
+    light:{bg:'#CBCBCB',line:'#888888'}
+  };
 
-    const theme=PALETTES[palette]&&PALETTES[palette][mode];
-    if(!theme){
-      console.error('ThemeEngine: unknown palette/mode combination:',palette,mode);
-      return;
-    }
+  function apply(state){
+    state=state||{};
+    const mode=state.mode==='dark'?'dark':'light';
+    const dark=THEMES.dark[state.dark]?state.dark:'github';
+    const light=THEMES.light[state.light]?state.light:'vercel';
+    const theme=THEMES[mode][mode==='dark'?dark:light];
+    const print=!!state.print;
+    const font=state.font==='serif'?'serif':'sans-serif';
+    const b=clampStep(state.brightness),s=clampStep(state.saturation);
 
     const root=document.documentElement;
     root.setAttribute('data-theme',mode);
-    root.setAttribute('data-palette',palette);
     root.setAttribute('data-font',font);
+    root.setAttribute('data-print',print?'on':'off');
+    root.setAttribute('data-dark',dark);
+    root.setAttribute('data-light',light);
 
-    for(const[prop,value]of Object.entries(theme)){
-      let adjusted;
-      if(value.startsWith('rgba')){
-        adjusted=adjustRgba(value,brightness,saturation);
-      }else if(value.startsWith('#')){
-        adjusted=adjustColor(value,brightness,saturation);
-      }else{
-        adjusted=value;
-      }
-      root.style.setProperty(prop,adjusted);
+    const vars={};
+    if(print){
+      vars['--page-bg']='var(--print-bg)';
+      vars['--page-ink']='var(--print-ink)';
+      vars['--page-muted']='var(--print-muted)';
+      vars['--page-line']='var(--print-line)';
+      vars['--card']='var(--print-bg)';
+      vars['--accent']='var(--print-ink)';
+      vars['--pick-ink']='var(--print-bg)';
+      vars['--tb-ink']='var(--print-muted)';
+      vars['--tb-line']='var(--print-line)';
+      vars['--thumb']=THUMB.light.bg;
+      vars['--thumb-line']=THUMB.light.line;
+    }else{
+      const bg=adjustColor(theme.bg,b,s);
+      const card=adjustColor(theme.card,b,s);
+      const ink=adjustColor(theme.ink,b,s);
+      const muted=adjustColor(theme.muted,b,s);
+      const line=adjustColor(theme.line,b,s);
+      const accent=adjustColor(theme.accent,b,s);
+      vars['--page-bg']=bg;
+      vars['--page-ink']=ink;
+      vars['--page-muted']=muted;
+      vars['--page-line']=line;
+      vars['--card']=card;
+      vars['--accent']=accent;
+      vars['--pick-ink']=inkOn(accent);
+      vars['--tb-ink']=muted;
+      vars['--tb-line']=line;
+      vars['--thumb']=THUMB[mode].bg;
+      vars['--thumb-line']=THUMB[mode].line;
+    }
+    for(const[prop,value]of Object.entries(vars)){
+      root.style.setProperty(prop,value);
     }
   }
 
-  return{apply,PALETTES};
+  return{apply,THEMES,inkOn};
 })();"##;

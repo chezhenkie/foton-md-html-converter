@@ -7,12 +7,12 @@
 
 A Rust CLI that reads Markdown (`.md`) or plain text (`.txt`) and writes a styled HTML page for each source. Each output page is fully self-contained (all CSS and JS inlined, no external dependencies) and embeds the **toolbar + theme engine** from `html-style-css-specsheet.md`:
 
-- **Three palettes** -- Regular, Monochrome, Solarized
-- **Compact toolbar** -- mode toggle, font toggle, palette selector, brightness/saturation sliders
-- **ThemeEngine** -- dynamic color adjustment via brightness and saturation sliders
+- **Nine themes** -- five dark (github, harbor, solarized, oledblack, ayu), four light (vercel, tokyonight, cursor, orng), picked from two menus
+- **Compact toolbar** -- print toggle, mode toggle, font toggle, dark and light theme menus, brightness/saturation sliders
+- **ThemeEngine** -- writes the six theme values as CSS tokens and adjusts them with the sliders
 - **OS-aware fonts** (including Linux) and **responsive layout**
 
-Pages open in **light mode + system-preferred font** by default; readers can adjust color, font, brightness, and saturation via the toolbar.
+Pages open in **the OS mode, sans-serif type and the default theme names**; readers can adjust color, font, brightness, and saturation via the toolbar.
 
 > **v7 is the only current converter.** v6 (old 3-toggle system) and earlier versions are obsolete.
 
@@ -103,10 +103,11 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 
 - **Same-folder output** -- each `.html` file is written next to its source file (`.md` or `.txt`); there is no output-directory option.
 - **Self-contained** -- each HTML file includes all CSS and JS inline; no external dependencies.
-- **Three palettes** -- Regular (default), Monochrome, and Solarized, selectable via the palette buttons.
-- **Compact toolbar** -- 24px fixed bar with mode toggle, font toggle, palette selector, brightness/saturation sliders.
-- **ThemeEngine** -- dynamic color adjustment: brightness (-3 to +3, 8% per step), saturation (-3 to +3, 15% per step).
-- **Font toggle** -- switches body/headings between serif and sans-serif; italics and code stay unchanged.
+- **Nine themes** -- five dark and four light, picked by name from the `dark theme` and `light theme` menus. Picking a name applies it and switches to that mode.
+- **Compact toolbar** -- 24px fixed bar with print toggle, mode toggle, font toggle, two theme menus, brightness/saturation sliders.
+- **ThemeEngine** -- adjusts the six theme values with the sliders: brightness (-3 to +3, 8% per step), saturation (-3 to +3, 15% per step).
+- **Print state** -- forces a white page with black ink; a real print drops the toolbar.
+- **Font toggle** -- switches body/headings between serif and sans-serif; every theme opens sans, and code keeps its own face.
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
@@ -137,6 +138,7 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 | `src/js/theme_engine.rs` | Module 2 (THEME_ENGINE_JS) | ThemeEngine JS |
 | `src/js/menubar.rs` | Module 2 (MENUBAR_JS) | MenuBar JS |
 | `src/js/os_detect.rs` | Module 4 (OS_DETECT_JS) | OS detection JS |
+| `src/js/theme_boot.rs` | Module 4 (THEME_BOOT_JS) | Pre-paint theme state JS |
 | `src/js/init.rs` | Module 4 (INIT_JS) | Bootstrap JS |
 | `src/html/toolbar.rs` | Module 4 (TOOLBAR_HTML) | Toolbar markup |
 | `src/html/builder.rs` | Module 4 (build_page) | Page assembly |

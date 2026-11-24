@@ -39,7 +39,7 @@ everything converted, 1 when anything failed.
 |---|---|
 | `PATH...` | One or more files and/or folders to convert (same as drag-and-drop). |
 | `--target <path>` | Convert one file or one folder. Cannot be combined with `PATH...`. |
-| `--kicker <text>` | Small label shown above the page title, e.g. `--kicker "Product Docs"`. |
+| `--kicker <text>` | Small label shown above the document body, e.g. `--kicker "Product Docs"`. |
 
 With no arguments at all, the current folder is converted. Examples:
 
@@ -52,13 +52,16 @@ With no arguments at all, the current folder is converted. Examples:
 Open the generated `.html` file in any browser. It has a fixed toolbar in the
 top-right corner:
 
-- **Mode toggle** — switches the page between light and dark. On load the
+- **Print friendly button** - switches the page to a white print palette; the
+  toolbar stays on screen but is left out of a real print.
+- **Mode toggle** - switches the page between light and dark. On load the
   page follows your system preference.
-- **Font toggle** — switches body and headings between serif and sans-serif;
-  italics and code stay unchanged.
-- **Palette picker** — Regular (default), Mono, or Solarized.
-- **Brightness and saturation sliders** — each has seven steps; saturation is
-  disabled in Mono.
+- **Font toggle** - switches body and headings between serif and sans-serif.
+  Every theme starts sans; code keeps its own face.
+- **Theme menus** - `dark theme` lists github, harbor, solarized, oledblack
+  and ayu; `light theme` lists vercel, tokyonight, cursor and orng. Picking a
+  name applies it and switches to that mode.
+- **Brightness and saturation sliders** - each has seven steps, from -3 to +3.
 
 These choices are per page view and reset when you reload; the page stores
 nothing on your computer.
