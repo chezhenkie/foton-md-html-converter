@@ -84,7 +84,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 
 A source keeps its name and gets a `.html` beside it: `notes.md` becomes `notes.html`. An existing page of that name is replaced; the source is never modified.
 
-The browser tab title is the source file name without its extension, and the six filenames `01-containers.md` through `06-client-utilities.md` keep fixed titles. A `lede:` line in YAML front matter becomes the italic line under the kicker, and `--kicker` supplies the label above it. The converter injects no heading: the body is the Markdown as written, so a `#` heading is the document's visible title.
+The page heading and the browser tab take the document's first `#` heading when it opens the document; that heading is removed from the body so it appears once. A document without a leading heading gets no injected heading, and the tab falls back to the file name, where the six filenames `01-containers.md` through `06-client-utilities.md` keep fixed titles. A `lede:` line in YAML front matter becomes the italic line under the kicker, and `--kicker` supplies the label above it.
 
 The Windows exe opens no console and prints nothing in any mode; success is reported by the exit code and by the files it writes. The Linux build prints the folder, one line per converted file and an error line per failure. Both return 0 when every input converted and 1 when any failed.
 
@@ -127,7 +127,7 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-The suite has 40 tests covering the parser, escaping, page assembly, toolbar controls and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
+The suite has 44 tests covering the parser, escaping, page assembly, toolbar controls and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
 
 ## Limits
 

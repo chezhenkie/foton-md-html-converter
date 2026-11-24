@@ -19,17 +19,24 @@ pub fn convert_file(md_file: &Path, kicker: Option<&str>) -> Result<(), String> 
 
     let filename = md_file.file_name().and_then(|s| s.to_str()).unwrap_or("");
 
-    let title = title_for(filename).unwrap_or_else(|| {
-        md_file
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .unwrap_or("Untitled")
+    let (doc_title, body_md) = crate::parser::markdown::split_title(&md);
+    let title = doc_title.clone().unwrap_or_else(|| {
+        title_for(filename)
+            .map(|t| t.to_string())
+            .unwrap_or_else(|| {
+                md_file
+                    .file_stem()
+                    .and_then(|s| s.to_str())
+                    .unwrap_or("Untitled")
+                    .to_string()
+            })
     });
 
     let lede = crate::parser::markdown::extract_lede(&md).unwrap_or_default();
 
-    let body_html = crate::parser::markdown::md_to_html(&md);
-    let page = crate::html::builder::build_page(title, &lede, &body_html, kicker);
+    let body_html = crate::parser::markdown::md_to_html(&body_md);
+    let page =
+        crate::html::builder::build_page(&title, doc_title.as_deref(), &lede, &body_html, kicker);
 
     let out_file = md_file.with_extension("html");
     fs::write(&out_file, page)

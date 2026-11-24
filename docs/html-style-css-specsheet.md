@@ -176,7 +176,7 @@ foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 
 **Output rules:** HTML next to source (no output-directory). `--target` file=folder=nonexistent/wrong-ext rules apply. Drag-and-drop: items processed in order; bad items skipped; exit 1 if any failed. Self-contained: all CSS/JS inline, nine themes, toolbar, OS-aware fonts, system preference detection, responsive (620px).
 
-**Markdown:** headings (h2 auto-numbered), bold/italic/code inline, links, fenced code blocks, tables (header+zebra), lists, callout blockquotes, horizontal rules (consumed), YAML front matter (skipped; `lede:` becomes the lede).
+**Markdown:** the first `#` heading becomes the page title and is removed from the body; headings (h2 auto-numbered), bold/italic/code inline, links, fenced code blocks, tables (header+zebra), lists, callout blockquotes, horizontal rules (consumed), YAML front matter (skipped; `lede:` becomes the lede).
 
 **Examples:**
 ```bash

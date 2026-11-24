@@ -30,7 +30,7 @@ All arguments are optional.
 | Argument | Default | Meaning |
 |---|---|---|
 | `--target <path>` | *(current directory)* | Path to a single `.md`/`.txt` file **or** a directory to convert. Trailing slashes are ignored. When absent, every `.md` and `.txt` in the current directory is converted. |
-| `--kicker <text>` | *(empty)* | Small uppercase label shown above the title on every content page (e.g. "REST API", "Knowledge Base"). Omitted if empty. |
+| `--kicker <text>` | *(empty)* | Small uppercase label shown above the body on every content page (e.g. "REST API", "Knowledge Base"). Omitted if empty. |
 | `PATH...` | *(none)* | One or more files and/or folders to convert, as bare paths. This is what Windows drag-and-drop onto the exe produces. Cannot be combined with `--target`. |
 
 **Output goes into the same folder as the source files.** There are no hardcoded paths and no output-directory argument.
@@ -42,7 +42,7 @@ All arguments are optional.
 | Flag | Type | Meaning |
 |---|---|---|
 | `--target <path>` | optional | Path to a single `.md`/`.txt` file **or** a directory. A directory (trailing slash optional) converts every `.md` and `.txt` inside it. Default: convert every `.md` and `.txt` in the current working directory. |
-| `--kicker <text>` | optional | Kicker text shown above the title on each page. Omitted if empty. |
+| `--kicker <text>` | optional | Kicker text shown above the body on each page. Omitted if empty. |
 | `PATH...` | optional | Files and/or folders to convert (drag-and-drop). Files are validated for `.md`/`.txt`; directories are scanned like `--target`. |
 
 ### `--target` path rules

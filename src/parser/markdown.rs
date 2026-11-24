@@ -71,6 +71,39 @@ fn flush_code_block(html: &mut String, code_buf: &[&str], code_lang: &str) {
     html.push_str("</code></pre>");
 }
 
+// The first non-empty block after front matter, when it is a level-one
+// heading, is the document title. It is removed from the body so the heading
+// is not rendered twice.
+pub fn split_title(md: &str) -> (Option<String>, String) {
+    let md = strip_bom(md);
+    let mut lines: Vec<&str> = md.split('\n').collect();
+    let mut i = 0;
+    if lines.first() == Some(&"---") {
+        i = 1;
+        while i < lines.len() {
+            let end = lines[i].trim() == "---";
+            i += 1;
+            if end {
+                break;
+            }
+        }
+    }
+    while i < lines.len() && lines[i].trim().is_empty() {
+        i += 1;
+    }
+    if i < lines.len()
+        && let Some(rest) = lines[i].trim_start().strip_prefix("# ")
+    {
+        let title = rest.trim();
+        if !title.is_empty() {
+            let title = title.to_string();
+            lines.remove(i);
+            return (Some(title), lines.join("\n"));
+        }
+    }
+    (None, md.to_string())
+}
+
 pub fn extract_lede(md: &str) -> Option<String> {
     let md = strip_bom(md);
     let lines: Vec<&str> = md.split('\n').collect();
@@ -451,6 +484,28 @@ mod tests {
     #[test]
     fn no_lede_when_no_front_matter() {
         assert_eq!(extract_lede("# Hello\n"), None);
+    }
+
+    #[test]
+    fn first_heading_becomes_the_title_and_leaves_the_body() {
+        let (title, body) = split_title("---\nlede: x\n---\n# Hello\n\n## Next\n");
+        assert_eq!(title.as_deref(), Some("Hello"));
+        assert!(!body.contains("# Hello"));
+        assert!(body.contains("## Next"));
+    }
+
+    #[test]
+    fn heading_after_content_is_left_alone() {
+        let (title, body) = split_title("Intro\n\n# Later\n");
+        assert_eq!(title, None);
+        assert!(body.contains("# Later"));
+    }
+
+    #[test]
+    fn only_the_first_heading_is_the_title() {
+        let (title, body) = split_title("\n\n# One\n\n# Two\n");
+        assert_eq!(title.as_deref(), Some("One"));
+        assert!(body.contains("# Two"));
     }
 
     #[test]
