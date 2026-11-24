@@ -1,4 +1,4 @@
-# foton-md-html-converter — User Manual
+# foton-md-html-converter - User Manual
 
 This little tool turns Markdown (`.md`) and plain text (`.txt`) files into
 finished HTML pages. Each page is a single self-contained file: the styling,
@@ -30,7 +30,7 @@ and dropping fresh notes next to it.
 
 The Windows exe is a windowless GUI program: it opens no console and prints
 nothing in any mode. The Linux build is a normal terminal tool and prints
-progress and error lines. Both set an exit code scripts can read — 0 when
+progress and error lines. Both set an exit code scripts can read: 0 when
 everything converted, 1 when anything failed.
 
     foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
@@ -49,8 +49,9 @@ With no arguments at all, the current folder is converted. Examples:
 
 ## The page it produces
 
-Open the generated `.html` file in any browser. It has a fixed toolbar in the
-top-right corner:
+Open the generated `.html` file in any browser. The document's first `#`
+heading becomes the page title and is removed from the body, so it appears
+once. The page has a fixed toolbar in the top-right corner:
 
 - **Print friendly button** - switches the page to a white print palette; the
   toolbar stays on screen but is left out of a real print.
@@ -68,7 +69,7 @@ nothing on your computer.
 
 ## Good to know
 
-- Input formats: `.md` and `.txt` only, and only in the folder you point at —
+- Input formats: `.md` and `.txt` only, and only in the folder you point at;
   subfolders are not scanned.
 - Markdown support includes headings (numbered sections), bold, italic, code,
   links, tables, lists, quotes, and fenced code blocks.

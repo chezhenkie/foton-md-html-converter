@@ -102,6 +102,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 ## 6. Output features
 
 - **Same-folder output** -- each `.html` file is written next to its source file (`.md` or `.txt`); there is no output-directory option.
+- **Document title** -- the first `#` heading becomes the `<title>` and the header `<h1>` and is removed from the body; without one the file name is the tab title only.
 - **Self-contained** -- each HTML file includes all CSS and JS inline; no external dependencies.
 - **Nine themes** -- five dark and four light, picked by name from the `dark theme` and `light theme` menus. Picking a name applies it and switches to that mode.
 - **Compact toolbar** -- 24px fixed bar with print toggle, mode toggle, font toggle, two theme menus, brightness/saturation sliders.
