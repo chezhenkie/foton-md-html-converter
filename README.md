@@ -1,6 +1,6 @@
 # Markdown to styled HTML
 
-![version 1.4.0](https://img.shields.io/badge/version-1.4.0-blue) ![platforms Windows, Linux](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-blue) ![license MIT](https://img.shields.io/badge/license-MIT-blue)
+![version 1.5.0](https://img.shields.io/badge/version-1.5.0-blue) ![platforms Windows, Linux](https://img.shields.io/badge/platforms-Windows%20%7C%20Linux-blue) ![license MIT](https://img.shields.io/badge/license-MIT-blue)
 
 `foton-md-html-converter` reads Markdown and plain text files and writes a finished HTML page for each one. The page is a single self-contained file: styles, scripts, toolbar and themes are inside it, so it opens from a local folder or a share without fetching anything. The HTML lands in the same folder as its source. The converter is a native binary with no runtime, package manager or configuration file.
 

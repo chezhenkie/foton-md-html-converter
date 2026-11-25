@@ -4,6 +4,8 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.5.0]
+
 ### Added
 
 - URL theme state: a `?mode=dark|light&dark=<name>&light=<name>` query opens the page in that mode and theme, suppresses OS following, and is carried into every local `.html` link. The names travel, not the colors; each page resolves them through its own table.
