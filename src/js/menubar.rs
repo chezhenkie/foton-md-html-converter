@@ -13,6 +13,7 @@ pub const MENUBAR_JS: &str = r#"const MenuBar=(function(){
       :(mq&&mq.matches?'dark':'light');
     if(opts.dark&&ThemeEngine.THEMES.dark[opts.dark])state.dark=opts.dark;
     if(opts.light&&ThemeEngine.THEMES.light[opts.light])state.light=opts.light;
+    if(opts.manual)manual=true;
     if(opts.font)state.font=opts.font;
 
     printBtn=document.getElementById('print');

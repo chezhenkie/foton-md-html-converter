@@ -56,7 +56,8 @@ once. The page has a fixed toolbar in the top-right corner:
 - **Print friendly button** - switches the page to a white print palette; the
   toolbar stays on screen but is left out of a real print.
 - **Mode toggle** - switches the page between light and dark. On load the
-  page follows your system preference.
+  page follows your system preference, unless the address carries a theme
+  query such as `?mode=dark&dark=harbor&light=orng`.
 - **Font toggle** - switches body and headings between serif and sans-serif.
   Every theme starts sans; code keeps its own face.
 - **Theme menus** - `dark theme` lists github, harbor, solarized, oledblack
@@ -65,7 +66,9 @@ once. The page has a fixed toolbar in the top-right corner:
 - **Brightness and saturation sliders** - each has seven steps, from -3 to +3.
 
 These choices are per page view and reset when you reload; the page stores
-nothing on your computer.
+nothing on your computer. A theme query in the address survives a reload and
+is copied into every local `.html` link, so pages opened from one link stay in
+that mode and theme; font, sliders and print reset.
 
 ## Good to know
 
@@ -75,3 +78,7 @@ nothing on your computer.
   links, tables, lists, quotes, and fenced code blocks.
 - Output never overwrites anything except the `.html` file with the same name
   as its source.
+- Pages are independent. A file converted later joins an existing folder
+  without touching the rest; link it from the index or from another page and
+  that link carries the theme state. A page converted before the theme query
+  existed ignores it and needs one reconversion.

@@ -6,7 +6,7 @@ Nine themes, one compact toolbar, OS-native fonts, a font switch. Toolbar: right
 
 ## 1. Themes
 
-A theme is a name, a mode and six values: page background, card fill, ink, muted text, line and accent. Five themes are dark and four are light. Light opens on `vercel`, dark on `github`, and the page follows the OS `prefers-color-scheme` until the reader picks.
+A theme is a name, a mode and six values: page background, card fill, ink, muted text, line and accent. Five themes are dark and four are light. Light opens on `vercel`, dark on `github`, and the page follows the OS `prefers-color-scheme` until the reader picks. A query of the form `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; names outside the table and unknown values are ignored.
 
 | Theme | Mode | `bg` | `card` | `ink` | `muted` | `line` | `accent` |
 |---|---|---|---|---|---|---|---|
@@ -102,7 +102,7 @@ Menus: `role="menu"` with `menuitemradio` rows. Picking a name applies it, switc
 
 A control is a native `<button>` or `<input>`, so Enter and Space work without handlers. Focus ring: 2px `--tb-ink`, 1px offset. `prefers-reduced-motion` stops the 250ms transitions.
 
-Nothing is stored. A reload returns the page to the OS mode, the default theme names, sans and 0/0.
+Nothing is stored. Without a query, a reload returns the page to the OS mode, the default theme names, sans and 0/0. The query carries only mode, dark and light; font, sliders and print are not in it. Pages are independent: a file converted later joins an existing folder and needs only a link to pick up the query, while a page written before the query support must be regenerated.
 
 ---
 
@@ -291,29 +291,40 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive"
 
 ## Appendix C. Scripts
 
-The head boot script sets the mode and the sans default before paint:
+The head boot script reads the mode query and sets the mode and the sans default before paint:
 
 ```js
 (function(){
+  var p=/[?&]mode=(dark|light)\b/.exec(window.location.search||'');
   var mq=window.matchMedia&&window.matchMedia('(prefers-color-scheme: dark)');
   var root=document.documentElement;
-  root.setAttribute('data-theme',mq&&mq.matches?'dark':'light');
+  root.setAttribute('data-theme',p?p[1]:(mq&&mq.matches?'dark':'light'));
   root.setAttribute('data-font','sans-serif');
   root.setAttribute('data-print','off');
 })();
 ```
 
-The init script follows the OS until the first manual pick:
+The init script passes the query names into the toolbar and follows the OS only without a query:
 
 ```js
 (function(){
+  var params=LinkState.readParams()||{};
+  var manual=!!(params.mode||params.dark||params.light);
   MenuBar.init({
-    onChange:function(state){ThemeEngine.apply(state);}
+    mode:params.mode||undefined,
+    dark:params.dark||undefined,
+    light:params.light||undefined,
+    manual:manual,
+    onChange:function(state){
+      ThemeEngine.apply(state);
+      LinkState.syncLinks(state);
+    }
   });
+  LinkState.syncLinks(MenuBar.getValues());
 })();
 ```
 
-`src/js/theme_engine.rs` holds the theme table and the apply path; `src/js/menubar.rs` holds the controls, menus and sliders. Both are embedded verbatim in every page.
+`src/js/link_state.rs` reads `mode`, `dark` and `light` from the query, checks the names against `ThemeEngine.THEMES` and rewrites every local `.html` link on each mode or theme change; `#`, `//`, scheme URLs and non-`.html` paths are left alone. `src/js/theme_engine.rs` holds the theme table and the apply path; `src/js/menubar.rs` holds the controls, menus and sliders. All are embedded verbatim in every page.
 
 ## Appendix D. Content CSS (verbatim)
 

@@ -17,13 +17,15 @@ The toolbar sits in the top right corner of every generated page and works offli
 | Control | Behavior |
 |---|---|
 | Print friendly | White page, black ink, no toolbar in the printout. Selecting a theme or flipping the mode switch ends it. |
-| Mode | Light or dark. The page starts from the OS `prefers-color-scheme` setting; after that the switch is manual. |
+| Mode | Light or dark. The page follows the OS `prefers-color-scheme` setting until a mode or theme pick. A URL query `?mode=dark&dark=harbor&light=orng` opens it in that state instead. |
 | Font | Serif or sans. Every theme opens sans; a theme change keeps the chosen font. Code and table header labels keep their own faces. |
 | Themes | A `dark theme` menu of five names and a `light theme` menu of four. Picking one applies it and switches to that mode; each mode keeps its own pick. |
 | Brightness | Seven steps from -3 to +3, 8 percent per step. |
 | Saturation | Seven steps from -3 to +3, 15 percent per step. |
 
-Nothing is stored. A reload returns the page to the OS mode, the github and vercel defaults, sans and 0/0.
+Nothing is stored. Without a query, a reload returns the page to the OS mode, the github and vercel defaults, sans and 0/0. A query carries the mode and the two theme names into every local `.html` link; font, sliders and print stay out of it.
+
+Pages are independent. A file converted later can join an existing folder without touching the others; give it a link in the index or in another page, and that link carries the theme query. Pages written before the query support do not read it, so reconvert them once.
 
 ## Requirements
 
@@ -127,7 +129,7 @@ cargo clippy --all-targets -- -D warnings
 cargo test
 ```
 
-The suite has 44 tests covering the parser, escaping, page assembly, toolbar controls and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
+The suite has 46 tests covering the parser, escaping, page assembly, toolbar controls, the theme query and folder scan. CI runs the three commands on Linux and Windows, builds the musl and Windows binaries, and uploads each as an artifact kept for seven days.
 
 ## Limits
 
@@ -136,7 +138,7 @@ The suite has 44 tests covering the parser, escaping, page assembly, toolbar con
 - A paragraph is one source line. Hard-wrapped text becomes a series of paragraphs.
 - Nested lists flatten to one level. Images, reference links, footnotes and underscore emphasis are outside the parser.
 - Fenced blocks render as escaped code; there is no diagram rendering.
-- Settings are per view and reset on reload. The page stores nothing.
+- Settings are per view and reset on reload, except the mode and theme names in a URL query. The page stores nothing.
 - Prebuilt files cover x86_64 Windows and Linux. There is no macOS or ARM build.
 - A Windows shell does not wait for a GUI program. Scripts start the exe with `Start-Process -Wait` or `start /wait` before reading the exit code.
 

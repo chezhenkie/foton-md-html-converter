@@ -51,9 +51,11 @@ static PAGE_TAIL: LazyLock<String> = LazyLock::new(|| {
 <script>{}</script>
 <script>{}</script>
 <script>{}</script>
+<script>{}</script>
 </body>
 </html>"#,
         js::THEME_ENGINE_JS,
+        js::LINK_STATE_JS,
         js::MENUBAR_JS,
         js::INIT_JS
     )
@@ -130,5 +132,25 @@ mod tests {
         assert_eq!(page.matches("<h1>").count(), 1);
         assert!(page.contains("<h1>Mine</h1>"));
         assert!(!page.contains("file-name</h1>"));
+    }
+
+    #[test]
+    fn page_carries_theme_query_state() {
+        let page = build_page("T", None, "", "", None);
+        assert!(page.contains("var p=/[?&]mode=(dark|light)"));
+        assert!(page.contains("function readParams"));
+        assert!(page.contains("function syncLinks"));
+        assert!(page.contains("path+pickQuery(state)+hash"));
+        assert!(js::MENUBAR_JS.contains("if(opts.manual)manual=true"));
+    }
+
+    #[test]
+    fn tail_order_carries_query_before_menubar() {
+        let page = build_page("T", None, "", "", None);
+        let engine = page.find("const ThemeEngine=(function()").unwrap();
+        let link = page.find("const LinkState=(function()").unwrap();
+        let menu = page.find("const MenuBar=(function()").unwrap();
+        let init = page.find("var params=LinkState.readParams()").unwrap();
+        assert!(engine < link && link < menu && menu < init);
     }
 }
