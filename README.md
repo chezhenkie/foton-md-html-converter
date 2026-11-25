@@ -25,7 +25,7 @@ The toolbar sits in the top right corner of every generated page and works offli
 
 Nothing is stored. Without a query, a reload returns the page to the OS mode, the github and vercel defaults, sans and 0/0. A query carries the mode and the two theme names into every local `.html` link; font, sliders and print stay out of it.
 
-Pages are independent. A file converted later can join an existing folder without touching the others; give it a link in the index or in another page, and that link carries the theme query. Pages written before the query support do not read it, so reconvert them once.
+Pages are independent. A file converted later can join an existing folder without touching the others; give it a link in the index or in another page, and that link carries the theme query. Pages written before the query support do not read it, so reconvert them once. The query carries names, not colors: each page resolves them through its own theme table, so pages stay in sync by name while a project can retune its palette independently.
 
 ## Requirements
 

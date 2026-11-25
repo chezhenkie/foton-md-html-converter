@@ -6,7 +6,7 @@ Nine themes, one compact toolbar, OS-native fonts, a font switch. Toolbar: right
 
 ## 1. Themes
 
-A theme is a name, a mode and six values: page background, card fill, ink, muted text, line and accent. Five themes are dark and four are light. Light opens on `vercel`, dark on `github`, and the page follows the OS `prefers-color-scheme` until the reader picks. A query of the form `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; names outside the table and unknown values are ignored.
+A theme is a name, a mode and six values: page background, card fill, ink, muted text, line and accent. Five themes are dark and four are light. Light opens on `vercel`, dark on `github`, and the page follows the OS `prefers-color-scheme` until the reader picks. A query of the form `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; names outside the table and unknown values are ignored. The query carries names, not colors, and each page resolves them through its own table, so projects can keep separate palettes as long as the nine names match.
 
 | Theme | Mode | `bg` | `card` | `ink` | `muted` | `line` | `accent` |
 |---|---|---|---|---|---|---|---|

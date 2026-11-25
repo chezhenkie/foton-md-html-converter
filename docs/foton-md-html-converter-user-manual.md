@@ -68,7 +68,9 @@ once. The page has a fixed toolbar in the top-right corner:
 These choices are per page view and reset when you reload; the page stores
 nothing on your computer. A theme query in the address survives a reload and
 is copied into every local `.html` link, so pages opened from one link stay in
-that mode and theme; font, sliders and print reset.
+that mode and theme; font, sliders and print reset. The address carries theme
+names only: each page uses its own palette values, so a project can retune its
+colors without breaking the choice, as long as the nine names stay.
 
 ## Good to know
 

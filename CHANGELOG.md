@@ -6,7 +6,7 @@ All notable changes to this project are documented in this file. The format foll
 
 ### Added
 
-- URL theme state: a `?mode=dark|light&dark=<name>&light=<name>` query opens the page in that mode and theme, suppresses OS following, and is carried into every local `.html` link.
+- URL theme state: a `?mode=dark|light&dark=<name>&light=<name>` query opens the page in that mode and theme, suppresses OS following, and is carried into every local `.html` link. The names travel, not the colors; each page resolves them through its own table.
 - Ten demo screenshots in `docs/`, one per theme and one of the print state, captured from the current page.
 - Both release binaries sit in `dist/`.
 

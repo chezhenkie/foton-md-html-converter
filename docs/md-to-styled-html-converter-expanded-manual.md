@@ -110,7 +110,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 - **Print state** -- forces a white page with black ink; a real print drops the toolbar.
 - **Font toggle** -- switches body/headings between serif and sans-serif; every theme opens sans, and code keeps its own face.
 - **System preference** -- detects `prefers-color-scheme` on load and applies matching mode.
-- **Theme query** -- `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; unknown names are ignored and a page without the query follows the system preference.
+- **Theme query** -- `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; unknown names are ignored and a page without the query follows the system preference. The query carries names, not values, so each page uses its own palette and a project can retune it independently as long as the nine names stay.
 - **Page independence** -- each page is self-contained, so files converted at different times can share a folder; a page converted before the theme query existed ignores it and needs one reconversion.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
 - **Responsive** -- adapts to mobile viewports below 620px.
