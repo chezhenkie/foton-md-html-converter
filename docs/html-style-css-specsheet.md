@@ -35,7 +35,7 @@ light: vercel, tokyonight, cursor, orng
 
 | Token | Source | Use |
 |---|---|---|
-| `--page-bg` | `bg` | page background, zebra rows; also the toolbar fill |
+| `--page-bg` | `bg` | page background; also the toolbar fill |
 | `--page-ink` | `ink` | body text, headings, table header text |
 | `--page-muted` | `muted` | lede, kicker, callout text, table header labels |
 | `--page-line` | `line` | hairlines, table, code and chip borders |
@@ -176,7 +176,7 @@ foton-md-html-converter-x64 [--target <path>] [--kicker <text>] [PATH...]
 
 **Output rules:** HTML next to source (no output-directory). `--target` file=folder=nonexistent/wrong-ext rules apply. Drag-and-drop: items processed in order; bad items skipped; exit 1 if any failed. Self-contained: all CSS/JS inline, nine themes, toolbar, OS-aware fonts, system preference detection, responsive (620px).
 
-**Markdown:** the first `#` heading becomes the page title and is removed from the body; headings (h2 auto-numbered), bold/italic/code inline, links, fenced code blocks, tables (header+zebra), lists, callout blockquotes, horizontal rules (consumed), YAML front matter (skipped; `lede:` becomes the lede).
+**Markdown:** the first `#` heading becomes the page title and is removed from the body; headings (h2 auto-numbered), bold/italic/code inline, links, fenced code blocks, tables (header row), lists, callout blockquotes, horizontal rules (consumed), YAML front matter (skipped; `lede:` becomes the lede).
 
 **Examples:**
 ```bash
@@ -349,7 +349,6 @@ th,td{text-align:left;padding:10px 14px;vertical-align:top}
 th{font-family:var(--font-ui);font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--page-muted);background:var(--card);border-bottom:2px solid var(--accent);font-weight:600;transition:background .25s,color .25s,border-color .25s}
 td{font-size:14.5px;border-bottom:1px solid var(--page-line);color:var(--page-ink);transition:background .25s,border-color .25s,color .25s}
 tr:last-child td{border-bottom:none}
-tr:nth-child(even) td{background:var(--page-bg)}
 .callout{border-left:4px solid var(--accent);background:var(--card);padding:16px 20px;margin:22px 0;font-family:var(--font-serif);font-style:italic;color:var(--page-muted);transition:background .25s,border-color .25s,color .25s}
 .callout strong{font-family:var(--font-ui);font-style:normal}
 ul,ol{margin:0 0 18px;padding-left:26px}

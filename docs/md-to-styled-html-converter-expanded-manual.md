@@ -72,7 +72,7 @@ Dropping files or folders onto the exe passes each item as a bare quoted path:
 | `` `code` `` | Inline `<code>` |
 | ```` ```lang ... ``` ```` | Fenced code block with optional language class |
 | `[text](url)` | Anchor link |
-| `\| ... \| ... \|` | Table with header row and zebra striping |
+| `\| ... \| ... \|` | Table with header row |
 | `- item` / `1. item` | Unordered / ordered list |
 | `> quote` | Callout blockquote |
 | `---` / `***` / `___` | Horizontal rule (consumed, not rendered) |

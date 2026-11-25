@@ -4,6 +4,12 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+## [1.6.0]
+
+### Changed
+
+- Table rows share one background: the zebra striping on the page fill is gone, so a table reads as one card surface.
+
 ## [1.5.0]
 
 ### Added

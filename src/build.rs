@@ -8,8 +8,8 @@ fn main() {
     res.set("FileDescription", "Markdown to styled HTML converter");
     res.set("ProductName", "foton-md-html-converter-x64");
     res.set("CompanyName", "westercoder");
-    res.set("FileVersion", "1.5.0.0");
-    res.set("ProductVersion", "1.5.0.0");
+    res.set("FileVersion", "1.6.0.0");
+    res.set("ProductVersion", "1.6.0.0");
     res.set("LegalCopyright", "Copyright 2026 westercoder");
     res.set("OriginalFilename", "foton-md-html-converter-x64.exe");
     res.set_icon("src/icon.ico");
