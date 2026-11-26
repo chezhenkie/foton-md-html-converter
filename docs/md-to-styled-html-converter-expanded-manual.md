@@ -153,6 +153,8 @@ v7 is implemented in Rust. Same behavior as the original Python script, modular 
 
 ### Build targets
 
+Run these from the `src` directory.
+
 | Target | Command | Binary |
 |---|---|---|
 | Windows (MSVC) | `cargo build --release` | `src/target/release/foton-md-html-converter-x64.exe` |

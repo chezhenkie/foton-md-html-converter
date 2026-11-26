@@ -116,15 +116,16 @@ The Windows exe opens no console and prints nothing in any mode; success is repo
 | `src/html/` | Page assembly and toolbar markup |
 | `src/css/`, `src/js/` | Embedded page styles and scripts |
 | `src/io/` | Folder scan and per-file conversion |
-| `build.rs` | Windows version resource and icon |
+| `src/build.rs` | Windows version resource and icon |
 | `docs/` | Specsheet, manuals and benchmark |
 | `.github/workflows/build.yml` | Format, lint, test and both builds |
 
 ## Check
 
-Run from the repository root:
+Run from the `src` directory:
 
 ```sh
+cd src
 cargo fmt --check
 cargo clippy --all-targets -- -D warnings
 cargo test

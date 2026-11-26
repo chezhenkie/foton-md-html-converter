@@ -2,7 +2,7 @@
 name = "foton-md-html-converter"
 version = "1.6.0"
 edition = "2024"
-build = "src/build.rs"
+build = "build.rs"
 authors = ["westercoder"]
 description = "Markdown to styled HTML converter"
 license = "MIT"
@@ -11,9 +11,12 @@ license = "MIT"
 clap = { version = "4", features = ["derive"] }
 regex = "1"
 
+[lib]
+path = "lib.rs"
+
 [[bin]]
 name = "foton-md-html-converter-x64"
-path = "src/main.rs"
+path = "main.rs"
 
 [build-dependencies]
 winresource = "0.1"

@@ -12,7 +12,7 @@ fn main() {
     res.set("ProductVersion", "1.6.0.0");
     res.set("LegalCopyright", "Copyright 2026 westercoder");
     res.set("OriginalFilename", "foton-md-html-converter-x64.exe");
-    res.set_icon("src/icon.ico");
+    res.set_icon("icon.ico");
     res.set_language(0x0409);
     res.compile().expect("Failed to compile Windows resources");
 }
