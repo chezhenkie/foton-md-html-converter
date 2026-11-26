@@ -2,22 +2,20 @@
 
 All notable changes to this project are documented in this file. The format follows Keep a Changelog and the project uses semantic versioning.
 
-## [Unreleased]
+## [1.6.0]
 
 ### Added
 
 - A back button at the far left of the toolbar, greyed out when the tab has no earlier page.
 
+### Changed
+
+- Table rows share one background: the zebra striping on the page fill is gone, so a table reads as one card surface.
+
 ### Fixed
 
 - Browser Back and a reload keep the user's mode and both theme names: a user change rewrites the current history entry instead of leaving the URL without a query.
 - The back button greys out on a local page with no earlier entry in Firefox, where each `file://` page is a separate origin for the Navigation API. Local links carry a `via` marker so a page opened from another page stays active.
-
-## [1.6.0]
-
-### Changed
-
-- Table rows share one background: the zebra striping on the page fill is gone, so a table reads as one card surface.
 
 ## [1.5.0]
 
