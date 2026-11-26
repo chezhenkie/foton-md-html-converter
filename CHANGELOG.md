@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented in this file. The format follows Keep a Changelog and the project uses semantic versioning.
 
+## [Unreleased]
+
+### Changed
+
+- The crate root moved into `src/`: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml` and `.cargo/config.toml` sit beside the sources, and cargo commands run from `src`. CI uses `src` as its working directory.
+
 ## [1.6.0]
 
 ### Added

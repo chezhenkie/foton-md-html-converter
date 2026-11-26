@@ -174,7 +174,7 @@ The Windows `.exe` includes a VERSIONINFO resource that populates the Details ta
 
 The resource is embedded at build time by `src/build.rs` using the `winresource` crate. When building the `x86_64-pc-windows-gnu` target, `winresource` calls `x86_64-w64-mingw32-windres` (from the MinGW toolchain in WSL) to compile the resource and link it into the binary. The Linux musl build skips this step.
 
-To update metadata: edit the `set()` calls in `src/build.rs`, rebuild with `cargo build --release --target x86_64-pc-windows-gnu` inside WSL, and copy the exe from `src/target/x86_64-pc-windows-gnu/release/` into `dist/`.
+To update metadata: edit the `set()` calls in `src/build.rs`, rebuild from the `src` directory with `cargo build --release --target x86_64-pc-windows-gnu` inside WSL, and copy the exe from `src/target/x86_64-pc-windows-gnu/release/` into `dist/`.
 
 ### Linux musl build
 
