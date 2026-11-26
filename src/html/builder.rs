@@ -140,7 +140,7 @@ mod tests {
         assert!(page.contains("var p=/[?&]mode=(dark|light)"));
         assert!(page.contains("function readParams"));
         assert!(page.contains("function syncLinks"));
-        assert!(page.contains("path+pickQuery(state)+hash"));
+        assert!(page.contains("path+pickQuery(state)+'&via=1'+hash"));
         assert!(js::MENUBAR_JS.contains("if(opts.manual)manual=true"));
     }
 
@@ -152,5 +152,19 @@ mod tests {
         let menu = page.find("const MenuBar=(function()").unwrap();
         let init = page.find("var params=LinkState.readParams()").unwrap();
         assert!(engine < link && link < menu && menu < init);
+    }
+
+    #[test]
+    fn page_carries_back_button_and_history_state() {
+        let page = build_page("T", None, "", "", None);
+        assert!(page.contains("id=\"back\""));
+        assert!(page.contains("path+pickQuery(state)+'&via=1'+hash"));
+        assert!(page.contains("window.history.length>1"));
+        assert!(page.contains("nav.canGoBack"));
+        assert!(page.contains("window.history.back()"));
+        assert!(page.contains("addEventListener('pageshow'"));
+        assert!(page.contains("history.replaceState"));
+        assert!(page.contains("LinkState.syncUrl(state)"));
+        assert!(page.contains("MenuBar.isManual()"));
     }
 }

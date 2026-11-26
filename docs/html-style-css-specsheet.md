@@ -1,6 +1,6 @@
 # HTML Style CSS Specsheet
 
-Nine themes, one compact toolbar, OS-native fonts, a font switch. Toolbar: right-aligned, fixed 24px.
+Nine themes, one compact toolbar, OS-native fonts, a font switch. Toolbar: back at the far left, the other controls right-aligned, fixed 24px, wrapping below 780px.
 
 ---
 
@@ -82,10 +82,11 @@ Brightness runs before saturation. The sliders change the applied values only; t
 
 ## 4. Toolbar
 
-Fixed, 24px high, right-aligned, 28px inset, fill `var(--page-bg)`, no bottom divider, 7px gap, 10px UI font.
+Fixed, 24px high, 28px inset, fill `var(--page-bg)`, no bottom divider, 7px gap, 10px UI font. The back button sits at the left inset and takes `margin-right:auto`; the other controls pack to the right.
 
 | Control | Type | Behavior |
 |---|---|---|
+| Back | Button, thin left arrow plus `go back` label | Follows `window.history.back()`. Enabled when the Navigation API reports a same-origin entry behind, or on a local file reached through a generated link (`via=1`) with `history.length > 1`. Grey at opacity .4 otherwise. |
 | Print friendly | Button, printer icon plus label | Forces the print tokens on screen. `aria-pressed` follows. |
 | Mode | 44x20px switch | Light or dark. Moon left, sun right. Thumb 16px, travels 17px. `aria-checked` true in light. |
 | Font | 44x20px switch | Serif or sans. ON is sans; `aria-checked` true in sans. I/line SVG icons. |
@@ -96,13 +97,17 @@ Fixed, 24px high, right-aligned, 28px inset, fill `var(--page-bg)`, no bottom di
 
 Button: 18px high, 1px border, radius 2px, padding 0 6px 3px. Fold caret: 3x4px solid triangle, 4px from the label. Menu: 21px below the button, 2px padding, same border, rows 16px high with 10px text; the checked row takes `--accent` fill and `--pick-ink` text.
 
+Back: weight 300, `letter-spacing:.2px`, arrow dropped 1px to sit on the label line; the disabled state is opacity .4 with the default cursor and the title `No earlier page`.
+
 Font switch: ON = `var(--font-ui)`, OFF = `var(--font-serif)`, and it drives body text and headings only. Every theme opens sans; a theme pick keeps the current font. The lede, `em` and callouts are serif italic in both positions. Code and table header labels keep their own faces.
 
 Menus: `role="menu"` with `menuitemradio` rows. Picking a name applies it, switches to that mode, closes the menu and returns focus to the button. Opening focuses the checked row; arrows move, Home and End jump, Escape closes, a click outside closes.
 
 A control is a native `<button>` or `<input>`, so Enter and Space work without handlers. Focus ring: 2px `--tb-ink`, 1px offset. `prefers-reduced-motion` stops the 250ms transitions.
 
-Nothing is stored. Without a query, a reload returns the page to the OS mode, the default theme names, sans and 0/0. The query carries only mode, dark and light; font, sliders and print are not in it. Pages are independent: a file converted later joins an existing folder and needs only a link to pick up the query, while a page written before the query support must be regenerated.
+Below 780px the bar wraps to two rows: height auto with a 44px minimum, 3px/10px padding, 4px gap, labels and dividers hidden and the sliders pushed to the second row by `.brk`.
+
+Nothing is stored. A user mode or theme change rewrites the current history entry, so browser Back and a reload keep the mode and both names. Without a query a fresh entry follows the OS mode and the default names. The query carries mode, dark and light; font, sliders and print are not in it. Every local `.html` link also carries `via=1`, a marker read only by the back button; pages written before the marker must be regenerated for the button to stay active in Firefox.
 
 ---
 
@@ -192,6 +197,12 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive"
 
 ```html
 <div id="tb" role="group" aria-label="Page controls">
+  <button class="tb-btn back" id="back" type="button" disabled aria-label="Go back" title="Go back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 12H5M11 6l-6 6 6 6"/>
+    </svg>
+    <span>go back</span>
+  </button>
   <button class="tb-btn" id="print" type="button" aria-pressed="false" aria-label="Print friendly" title="Print friendly">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M6 9V3h12v6"/>
@@ -235,6 +246,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive"
     <div class="menu" id="light-menu" role="menu" aria-label="Light theme"></div>
   </div>
   <span class="s" aria-hidden="true"></span>
+  <span class="brk" aria-hidden="true"></span>
   <div class="sl">
     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
       <rect x="1" y="1" width="10" height="10"/>
@@ -262,6 +274,10 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive"
 #tb .s{width:1px;height:12px;background:var(--tb-line)}
 #tb .tb-btn{display:inline-flex;align-items:center;justify-content:center;gap:4px;height:18px;padding:0 6px 3px;cursor:pointer;color:inherit;background:transparent;border:1px solid var(--tb-line);border-radius:2px;white-space:nowrap}
 #tb .tb-btn svg{width:13px;height:13px}
+#tb .tb-btn:disabled{opacity:.4;cursor:default}
+#tb .tb-btn.back{font-weight:300;letter-spacing:.2px;margin-right:auto}
+#tb .tb-btn.back svg{transform:translateY(1px)}
+#tb .brk{display:none}
 #tb .tb-btn.on{background:var(--tb-ink);color:var(--page-bg);border-color:var(--tb-ink)}
 #tb .tb-btn.fold{min-width:68px}
 #tb .tb-btn.fold::after{content:"";width:0;height:0;margin-left:4px;border-left:3px solid transparent;border-right:3px solid transparent;border-top:4px solid currentColor}
@@ -286,6 +302,13 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive"
 #tb .sl input[type=range]::-moz-range-thumb{width:10px;height:10px;background:var(--page-bg);border:1px solid var(--tb-ink);border-radius:2px;cursor:pointer}
 #tb .sl .v{min-width:14px;text-align:center;font-variant-numeric:tabular-nums}
 #tb .tb-btn:focus-visible,#tb .toggle:focus-visible,#tb .sl input:focus-visible,#tb .menu button:focus-visible{outline:2px solid var(--tb-ink);outline-offset:1px}
+@media(max-width:780px){
+  #tb{height:auto;min-height:44px;flex-wrap:wrap;justify-content:flex-start;padding:3px 10px;gap:4px}
+  #tb .s{display:none}
+  #tb .tb-btn span{display:none}
+  #tb .tb-btn.back{margin-right:0}
+  #tb .brk{display:block;flex-basis:100%;height:0}
+}
 @media(prefers-reduced-motion:reduce){#tb *{transition:none!important}}
 ```
 
@@ -318,13 +341,36 @@ The init script passes the query names into the toolbar and follows the OS only 
     onChange:function(state){
       ThemeEngine.apply(state);
       LinkState.syncLinks(state);
+      if(MenuBar.isManual())LinkState.syncUrl(state);
     }
   });
+  var backBtn=document.getElementById('back');
+  if(backBtn){
+    var syncBack=function(){
+      var nav=window.navigation;
+      var can;
+      if(nav&&typeof nav.canGoBack==='boolean'){
+        can=nav.canGoBack;
+        // Firefox gives each file:// page its own origin, so a page opened
+        // from a local link reports no back entry. The via marker proves the
+        // link; history.length proves it did not open in a new tab.
+        if(!can&&window.location.protocol==='file:'&&window.history.length>1&&/[?&]via=1\b/.test(window.location.search))can=true;
+      }else{
+        can=window.history.length>1;
+      }
+      backBtn.disabled=!can;
+      backBtn.title=can?'Go back':'No earlier page';
+      backBtn.setAttribute('aria-label',backBtn.title);
+    };
+    syncBack();
+    if(window.addEventListener)window.addEventListener('pageshow',syncBack);
+    backBtn.addEventListener('click',function(){window.history.back();});
+  }
   LinkState.syncLinks(MenuBar.getValues());
 })();
 ```
 
-`src/js/link_state.rs` reads `mode`, `dark` and `light` from the query, checks the names against `ThemeEngine.THEMES` and rewrites every local `.html` link on each mode or theme change; `#`, `//`, scheme URLs and non-`.html` paths are left alone. `src/js/theme_engine.rs` holds the theme table and the apply path; `src/js/menubar.rs` holds the controls, menus and sliders. All are embedded verbatim in every page.
+`src/js/link_state.rs` reads `mode`, `dark` and `light` from the query, checks the names against `ThemeEngine.THEMES` and rewrites every local `.html` link on each mode or theme change with a theme query plus `&via=1`; `#`, `//`, scheme URLs and non-`.html` paths are left alone. `syncUrl` rewrites the current entry after a manual pick and keeps `via=1` if the entry had it. `src/js/theme_engine.rs` holds the theme table and the apply path; `src/js/menubar.rs` holds the controls, menus and sliders. All are embedded verbatim in every page.
 
 ## Appendix D. Content CSS (verbatim)
 
@@ -357,5 +403,5 @@ li::marker{color:var(--accent)}
 code{font-family:var(--font-mono);font-size:13px;background:transparent;color:var(--page-ink);border:1px solid var(--page-line);padding:1px 5px;border-radius:3px;transition:background .25s,color .25s,border-color .25s}
 pre{background:var(--card);color:var(--page-ink);border:1px solid var(--page-line);padding:16px 20px;border-radius:4px;overflow-x:auto;margin:18px 0 24px;font-family:var(--font-mono);font-size:13px;line-height:1.6;transition:background .25s,color .25s,border-color .25s}
 pre code{background:none;color:inherit;border:0;padding:0}
-@media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}}
+@media(max-width:620px){.wrap{padding:66px 18px 72px}h1{font-size:28px}}
 ```

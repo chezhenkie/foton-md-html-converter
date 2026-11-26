@@ -31,9 +31,18 @@ pub const LINK_STATE_JS: &str = r#"const LinkState=(function(){
       var path=cut<0?href:href.slice(0,cut);
       var hash=href.indexOf('#')<0?'':href.slice(href.indexOf('#'));
       if(!/\.html$/.test(path))continue;
-      a.setAttribute('href',path+pickQuery(state)+hash);
+      a.setAttribute('href',path+pickQuery(state)+'&via=1'+hash);
     }
   }
 
-  return{readParams:readParams,syncLinks:syncLinks};
+  function syncUrl(state){
+    try{
+      if(window.history&&window.history.replaceState){
+        var via=/[?&]via=1\b/.test(window.location.search)?'&via=1':'';
+        window.history.replaceState(null,'',pickQuery(state)+via+window.location.hash);
+      }
+    }catch(e){}
+  }
+
+  return{readParams:readParams,syncLinks:syncLinks,syncUrl:syncUrl};
 })();"#;

@@ -14,6 +14,10 @@ pub const TOOLBAR_CSS: &str = r#"#tb{
   white-space:nowrap;
 }
 #tb .tb-btn svg{width:13px;height:13px}
+#tb .tb-btn:disabled{opacity:.4;cursor:default}
+#tb .tb-btn.back{font-weight:300;letter-spacing:.2px;margin-right:auto}
+#tb .tb-btn.back svg{transform:translateY(1px)}
+#tb .brk{display:none}
 #tb .tb-btn.on{background:var(--tb-ink);color:var(--page-bg);border-color:var(--tb-ink)}
 #tb .tb-btn.fold{min-width:68px}
 #tb .tb-btn.fold::after{
@@ -73,6 +77,13 @@ pub const TOOLBAR_CSS: &str = r#"#tb{
 #tb .sl .v{min-width:14px;text-align:center;font-variant-numeric:tabular-nums}
 #tb .tb-btn:focus-visible,#tb .toggle:focus-visible,#tb .sl input:focus-visible,#tb .menu button:focus-visible{
   outline:2px solid var(--tb-ink);outline-offset:1px;
+}
+@media(max-width:780px){
+  #tb{height:auto;min-height:44px;flex-wrap:wrap;justify-content:flex-start;padding:3px 10px;gap:4px}
+  #tb .s{display:none}
+  #tb .tb-btn span{display:none}
+  #tb .tb-btn.back{margin-right:0}
+  #tb .brk{display:block;flex-basis:100%;height:0}
 }
 @media(prefers-reduced-motion:reduce){
   #tb *{transition:none!important}

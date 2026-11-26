@@ -51,8 +51,11 @@ With no arguments at all, the current folder is converted. Examples:
 
 Open the generated `.html` file in any browser. The document's first `#`
 heading becomes the page title and is removed from the body, so it appears
-once. The page has a fixed toolbar in the top-right corner:
+once. The page has a fixed toolbar: `go back` at the far left, the other
+controls at the top right.
 
+- **Back** - returns to the page you came from; grey when this tab has no
+  earlier page.
 - **Print friendly button** - switches the page to a white print palette; the
   toolbar stays on screen but is left out of a real print.
 - **Mode toggle** - switches the page between light and dark. On load the
@@ -66,11 +69,13 @@ once. The page has a fixed toolbar in the top-right corner:
 - **Brightness and saturation sliders** - each has seven steps, from -3 to +3.
 
 These choices are per page view and reset when you reload; the page stores
-nothing on your computer. A theme query in the address survives a reload and
-is copied into every local `.html` link, so pages opened from one link stay in
-that mode and theme; font, sliders and print reset. The address carries theme
-names only: each page uses its own palette values, so a project can retune its
-colors without breaking the choice, as long as the nine names stay.
+nothing on your computer. A mode or theme pick rewrites the current history
+entry, so Back and a reload keep it. A theme query in the address survives a
+reload and is copied into every local `.html` link, so pages opened from one
+link stay in that mode and theme; font, sliders and print reset. The address
+carries theme names only, plus a small link marker used by the back button:
+each page uses its own palette values, so a project can retune its colors
+without breaking the choice, as long as the nine names stay.
 
 ## Good to know
 

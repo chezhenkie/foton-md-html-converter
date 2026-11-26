@@ -26,4 +26,4 @@ li::marker{color:var(--accent)}
 code{font-family:var(--font-mono);font-size:13px;background:transparent;color:var(--page-ink);border:1px solid var(--page-line);padding:1px 5px;border-radius:3px;transition:background .25s,color .25s,border-color .25s}
 pre{background:var(--card);color:var(--page-ink);border:1px solid var(--page-line);padding:16px 20px;border-radius:4px;overflow-x:auto;margin:18px 0 24px;font-family:var(--font-mono);font-size:13px;line-height:1.6;transition:background .25s,color .25s,border-color .25s}
 pre code{background:none;color:inherit;border:0;padding:0}
-@media(max-width:620px){.wrap{padding:40px 18px 72px}h1{font-size:28px}}"#;
+@media(max-width:620px){.wrap{padding:66px 18px 72px}h1{font-size:28px}}"#;

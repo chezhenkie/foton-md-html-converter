@@ -8,7 +8,7 @@
 A Rust CLI that reads Markdown (`.md`) or plain text (`.txt`) and writes a styled HTML page for each source. Each output page is fully self-contained (all CSS and JS inlined, no external dependencies) and embeds the **toolbar + theme engine** from `html-style-css-specsheet.md`:
 
 - **Nine themes** -- five dark (github, harbor, solarized, oledblack, ayu), four light (vercel, tokyonight, cursor, orng), picked from two menus
-- **Compact toolbar** -- print toggle, mode toggle, font toggle, dark and light theme menus, brightness/saturation sliders
+- **Compact toolbar** -- back button at the left, then print toggle, mode toggle, font toggle, dark and light theme menus, brightness/saturation sliders
 - **ThemeEngine** -- writes the six theme values as CSS tokens and adjusts them with the sliders
 - **OS-aware fonts** (including Linux) and **responsive layout**
 
@@ -105,7 +105,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 - **Document title** -- the first `#` heading becomes the `<title>` and the header `<h1>` and is removed from the body; without one the file name is the tab title only.
 - **Self-contained** -- each HTML file includes all CSS and JS inline; no external dependencies.
 - **Nine themes** -- five dark and four light, picked by name from the `dark theme` and `light theme` menus. Picking a name applies it and switches to that mode.
-- **Compact toolbar** -- 24px fixed bar with print toggle, mode toggle, font toggle, two theme menus, brightness/saturation sliders.
+- **Compact toolbar** -- 24px fixed bar with a back button at the left, then print toggle, mode toggle, font toggle, two theme menus, brightness/saturation sliders. It wraps to two rows below 780px.
 - **ThemeEngine** -- adjusts the six theme values with the sliders: brightness (-3 to +3, 8% per step), saturation (-3 to +3, 15% per step).
 - **Print state** -- forces a white page with black ink; a real print drops the toolbar.
 - **Font toggle** -- switches body/headings between serif and sans-serif; every theme opens sans, and code keeps its own face.
@@ -113,7 +113,7 @@ foton-md-html-converter-x64 "C:\docs\notes.md" "C:\docs\archive" "C:\misc\readme
 - **Theme query** -- `?mode=dark|light&dark=<name>&light=<name>` opens the page in that state and is carried into every local `.html` link; unknown names are ignored and a page without the query follows the system preference. The query carries names, not values, so each page uses its own palette and a project can retune it independently as long as the nine names stay.
 - **Page independence** -- each page is self-contained, so files converted at different times can share a folder; a page converted before the theme query existed ignores it and needs one reconversion.
 - **OS-aware fonts** -- Segoe UI on Windows, SF Pro on macOS/iOS, Roboto on Android, Ubuntu on Linux; no webfonts/CDN.
-- **Responsive** -- adapts to mobile viewports below 620px.
+- **Responsive** -- the toolbar wraps below 780px; content adapts below 620px.
 
 
 ## 7. Script structure

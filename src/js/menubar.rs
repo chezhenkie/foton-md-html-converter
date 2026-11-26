@@ -223,5 +223,9 @@ pub const MENUBAR_JS: &str = r#"const MenuBar=(function(){
     emit();
   }
 
-  return{init,getValues,setValues,setMode,setTheme,setFont,setPrint};
+  function isManual(){
+    return manual;
+  }
+
+  return{init,getValues,setValues,setMode,setTheme,setFont,setPrint,isManual};
 })();"#;

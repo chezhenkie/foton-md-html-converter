@@ -4,6 +4,15 @@ All notable changes to this project are documented in this file. The format foll
 
 ## [Unreleased]
 
+### Added
+
+- A back button at the far left of the toolbar, greyed out when the tab has no earlier page.
+
+### Fixed
+
+- Browser Back and a reload keep the user's mode and both theme names: a user change rewrites the current history entry instead of leaving the URL without a query.
+- The back button greys out on a local page with no earlier entry in Firefox, where each `file://` page is a separate origin for the Navigation API. Local links carry a `via` marker so a page opened from another page stays active.
+
 ## [1.6.0]
 
 ### Changed

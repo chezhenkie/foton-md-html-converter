@@ -1,4 +1,10 @@
 pub const TOOLBAR_HTML: &str = r##"<div id="tb" role="group" aria-label="Page controls">
+  <button class="tb-btn back" id="back" type="button" disabled aria-label="Go back" title="Go back">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M20 12H5M11 6l-6 6 6 6"/>
+    </svg>
+    <span>go back</span>
+  </button>
   <button class="tb-btn" id="print" type="button" aria-pressed="false" aria-label="Print friendly" title="Print friendly">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
       <path d="M6 9V3h12v6"/>
@@ -42,6 +48,7 @@ pub const TOOLBAR_HTML: &str = r##"<div id="tb" role="group" aria-label="Page co
     <div class="menu" id="light-menu" role="menu" aria-label="Light theme"></div>
   </div>
   <span class="s" aria-hidden="true"></span>
+  <span class="brk" aria-hidden="true"></span>
   <div class="sl">
     <svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true">
       <rect x="1" y="1" width="10" height="10"/>
@@ -68,6 +75,7 @@ mod tests {
     #[test]
     fn toolbar_carries_every_control() {
         for id in [
+            "id=\"back\"",
             "id=\"print\"",
             "id=\"mode\"",
             "id=\"font\"",
@@ -78,5 +86,17 @@ mod tests {
         ] {
             assert!(TOOLBAR_HTML.contains(id), "missing {id}");
         }
+    }
+
+    #[test]
+    fn back_button_precedes_print_and_starts_disabled() {
+        assert!(TOOLBAR_HTML.contains("class=\"tb-btn back\" id=\"back\""));
+        assert!(TOOLBAR_HTML.contains("type=\"button\" disabled aria-label=\"Go back\""));
+        assert!(TOOLBAR_HTML.contains("stroke-width=\"1.4\""));
+        assert!(TOOLBAR_HTML.contains("<path d=\"M20 12H5M11 6l-6 6 6 6\"/>"));
+        assert!(TOOLBAR_HTML.contains("<span>go back</span>"));
+        let back = TOOLBAR_HTML.find("id=\"back\"").unwrap();
+        let print = TOOLBAR_HTML.find("id=\"print\"").unwrap();
+        assert!(back < print);
     }
 }
